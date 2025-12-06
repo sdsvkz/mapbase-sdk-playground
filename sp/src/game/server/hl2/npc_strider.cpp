@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: Giant walking strider thing!
 //
@@ -1834,7 +1834,7 @@ void CNPC_Strider::RunTask( const Task_t *pTask )
    		break;
 
 	case TASK_PLAY_SEQUENCE:
-		if( m_bFastCrouch && pTask->flTaskData == ACT_CROUCH )
+		if( m_bFastCrouch && pTask->flTaskData == static_cast<int>(ACT_CROUCH) )
 		{
 			SetPlaybackRate( 10.0f );
 			if( IsSequenceFinished() )

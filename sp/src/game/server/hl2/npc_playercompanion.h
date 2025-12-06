@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: Base class for humanoid NPCs intended to fight along side player in close
 // environments
@@ -255,7 +255,7 @@ public:
 	//---------------------------------
 	CBaseEntity		*GetAimTarget() { return m_hAimTarget; }
 	void			SetAimTarget( CBaseEntity *pTarget );
-	void			StopAiming( char *pszReason = NULL );
+	void			StopAiming( const char *pszReason = NULL );
 	bool			FindNewAimTarget();
 	void			OnNewLookTarget();
 	bool			ShouldBeAiming();

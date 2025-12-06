@@ -1,0 +1,7 @@
+[
+  {
+    "directory": "D:\\games\\SourceEngine\\Programming\\mapbase-sdk-playground\\sp\\src\\utils\\height2normal",
+    "command": "\"C:\\WINDOWS\\system32\\CL.exe\" \/c \/I..\\..\\common \/I..\\..\\public \/I..\\..\\public\\tier0 \/I..\\..\\public\\tier1 \/I..\\common \/nologo \/W4 \/WX \/diagnostics:column \/O2 \/Ob2 \/Oi \/Ot \/Oy- \/D _HAS_ITERATOR_DEBUGGING=0 \/D _WIN32 \/D _CONSOLE \/D _ALLOW_RUNTIME_LIBRARY_MISMATCH \/D _ALLOW_ITERATOR_DEBUG_LEVEL_MISMATCH \/D _ALLOW_MSC_VER_MISMATCH \/D _MBCS \/D _EXTERNAL_DLL_EXT=.dll \/D VPCGAMECAPS=VALVE \/D \"PROJECTDIR=D:\\games\\SourceEngine\\Programming\\mapbase-sdk-playground\\sp\\src\\utils\\height2normal\" \/D _DLL_EXT=.dll \/D SOURCE1=1 \/D VPCGAME=valve \/MT \/GS \/Gy \/arch:SSE2 \/fp:fast \/GR \/std:c++20 \/Fo\".\\Release\\.\\\/\" \/Gd \/TP --target=i686-pc-windows-msvc   \/d2Zi+ \/Gw \"D:\\games\\SourceEngine\\Programming\\mapbase-sdk-playground\\sp\\src\\utils\\height2normal\\height2normal.cpp\"",
+    "file": "D:\\games\\SourceEngine\\Programming\\mapbase-sdk-playground\\sp\\src\\utils\\height2normal\\height2normal.cpp"
+  }
+]

@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -2628,11 +2628,11 @@ void CSceneEntity::InputInterjectResponse( inputdata_t &inputdata )
 
 			// Try to find the response for this slot.
 			AI_Response response;
-			CAI_Concept concept(inputdata.value.String());
-			concept.SetSpeaker(npc);
+			CAI_Concept aiConcept(inputdata.value.String());
+			aiConcept.SetSpeaker(npc);
 			AI_CriteriaSet set;
-			npc->GatherCriteria(&set, concept, modifiers.Get());
-			bool result = npc->FindResponse( response, concept, &set);
+			npc->GatherCriteria(&set, aiConcept, modifiers.Get());
+			bool result = npc->FindResponse( response, aiConcept, &set);
 			if ( result )
 			{
 				float duration = npc->GetResponseDuration( &response );
@@ -2640,7 +2640,7 @@ void CSceneEntity::InputInterjectResponse( inputdata_t &inputdata )
 				if ( ( duration > 0.0f ) && npc->PermitResponse( duration ) )
 				{
 					// If we could look it up, dispatch it and bail.
-					npc->SpeakDispatchResponse( concept, &response, &set);
+					npc->SpeakDispatchResponse( aiConcept, &response, &set);
 					return;
 				}
 			}
@@ -3389,8 +3389,8 @@ void CSceneEntity::QueueResumePlayback( void )
 				{
 #ifdef NEW_RESPONSE_SYSTEM
 					AI_Response response;
-					CAI_Concept concept(STRING(m_iszResumeSceneFile));
-					bool result = pBaseActor->FindResponse( response, concept, NULL );
+					CAI_Concept aiConcept(STRING(m_iszResumeSceneFile));
+					bool result = pBaseActor->FindResponse( response, aiConcept, NULL );
 					if ( result )
 					{
 						const char* szResponse = response.GetResponsePtr();
@@ -4023,7 +4023,7 @@ void MissingSceneWarning( char const *scenename )
 	static CUtlSymbolTable missing;
 
 	// Make sure we only show the message once
-	if ( UTL_INVAL_SYMBOL == missing.Find( scenename ) )
+	if ( UTL_INVAL_SYMBOL == static_cast<UtlSymId_t>( missing.Find( scenename ) ) )
 	{
 		missing.AddString( scenename );
 

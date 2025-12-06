@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: FIXME: This will ultimately become a more generic implementation
 //
@@ -75,7 +75,7 @@ public:
 
 private:
 
-	void	SpeakIfAllowed( AIConcept_t concept );
+	void	SpeakIfAllowed( AIConcept_t aiConcept );
 	bool	ShouldRunToCover( void );
 	bool	ShouldRunToFollowGoal( void );
 	bool	FindThreatDirection2D( const Vector &vecSource, Vector *vecOut );

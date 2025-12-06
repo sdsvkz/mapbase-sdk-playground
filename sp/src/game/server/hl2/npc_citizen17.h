@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: The downtrodden citizens of City 17. Timid when unarmed, they will
 //			rise up against their Combine oppressors when given a weapon.
@@ -211,7 +211,7 @@ public:
 	void			SetSquad( CAI_Squad *pSquad );
 	void			AddInsignia();
 	void			RemoveInsignia();
-	bool			SpeakCommandResponse( AIConcept_t concept, const char *modifiers = NULL );
+	bool			SpeakCommandResponse( AIConcept_t aiConcept, const char *modifiers = NULL );
 
 #ifdef MAPBASE
 	virtual void	SetPlayerAvoidState( void );

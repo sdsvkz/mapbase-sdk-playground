@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -75,9 +75,9 @@ void CSpeaker::Spawn( void )
 		SetThink( &CSpeaker::SUB_Remove );
 		return;
 	}
-
-//	const char *concept = (const char *)STRING( m_iszConcept );
-//	if ( Q_strlen( concept ) < 1 )
+	
+//	const char *aiConcept = (const char *)STRING( m_iszConcept );
+//	if ( Q_strlen( aiConcept ) < 1 )
 //	{
 //		Warning( "'speaker' entity using rule set %s with empty concept string\n", soundfile );
 //	}

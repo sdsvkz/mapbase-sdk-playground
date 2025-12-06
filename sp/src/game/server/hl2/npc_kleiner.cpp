@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: Dr. Kleiner, a suave ladies man leading the fight against the evil 
 //			combine while constantly having to help his idiot assistant Gordon
@@ -84,7 +84,7 @@ int CNPC_Kleiner::GetSoundInterests ( void )
 void CNPC_Kleiner::Spawn()
 {
 	// Allow custom model usage (mostly for monitors)
-	char *szModel = (char *)STRING( GetModelName() );
+	const char *szModel = (char *)STRING( GetModelName() );
 	if (!szModel || !*szModel)
 	{
 		szModel = "models/kleiner.mdl";

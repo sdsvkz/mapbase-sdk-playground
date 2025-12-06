@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: The downtrodden citizens of City 17.
 //
@@ -152,7 +152,7 @@ ConVar	ai_citizen_debug_commander( "ai_citizen_debug_commander", "1" );
 #define STATES_WITH_EXPRESSIONS		3		// Idle, Alert, Combat
 #define EXPRESSIONS_PER_STATE		1
 
-char *szExpressionTypes[CIT_EXP_LAST_TYPE] =
+const char *szExpressionTypes[CIT_EXP_LAST_TYPE] =
 {
 	"Unassigned",
 	"Scared",
@@ -162,7 +162,7 @@ char *szExpressionTypes[CIT_EXP_LAST_TYPE] =
 
 struct citizen_expression_list_t
 {
-	char *szExpressions[EXPRESSIONS_PER_STATE];
+	const char *szExpressions[EXPRESSIONS_PER_STATE];
 };
 // Scared
 citizen_expression_list_t ScaredExpressions[STATES_WITH_EXPRESSIONS] =
@@ -2808,9 +2808,9 @@ bool CNPC_Citizen::IsValidCommandTarget( CBaseEntity *pTarget )
 }
 
 //-----------------------------------------------------------------------------
-bool CNPC_Citizen::SpeakCommandResponse( AIConcept_t concept, const char *modifiers )
+bool CNPC_Citizen::SpeakCommandResponse( AIConcept_t aiConcept, const char *modifiers )
 {
-	return SpeakIfAllowed( concept, 
+	return SpeakIfAllowed( aiConcept, 
 						   CFmtStr( "numselected:%d,"
 									"useradio:%d%s",
 									( GetSquad() ) ? GetSquad()->NumMembers() : 1,
@@ -4615,7 +4615,7 @@ CCitizenResponseSystem	*GetCitizenResponse()
 	return g_pCitizenResponseSystem;
 }
 
-char *CitizenResponseConcepts[MAX_CITIZEN_RESPONSES] = 
+const char *CitizenResponseConcepts[MAX_CITIZEN_RESPONSES] = 
 {
 	"TLK_CITIZEN_RESPONSE_SHOT_GUNSHIP",
 	"TLK_CITIZEN_RESPONSE_KILLED_GUNSHIP",

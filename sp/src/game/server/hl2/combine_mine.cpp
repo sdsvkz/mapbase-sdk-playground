@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -39,7 +39,7 @@ enum
 #define MINE_CITIZEN_SKIN_MIN 1
 #define MINE_CITIZEN_SKIN_MAX 2
 
-char *pszMineStateNames[] =
+const char *pszMineStateNames[] =
 {
 	"Dormant",
 	"Deploy",

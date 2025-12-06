@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: FIXME: This will ultimately become a more generic implementation
 //
@@ -479,16 +479,16 @@ void CAI_BehaviorAlyxInjured::GatherConditions( void )
 //-----------------------------------------------------------------------------
 // Purpose: Speak a concept if we're able to
 //-----------------------------------------------------------------------------
-void CAI_BehaviorAlyxInjured::SpeakIfAllowed( AIConcept_t concept )
+void CAI_BehaviorAlyxInjured::SpeakIfAllowed( AIConcept_t aiConcept )
 {
 	CAI_Expresser *pExpresser = GetOuter()->GetExpresser();
 	if ( pExpresser == NULL )
 		return;
 
 	// Must be able to speak the concept
-	if ( pExpresser->CanSpeakConcept( concept ) )
+	if ( pExpresser->CanSpeakConcept( aiConcept ) )
 	{
-		pExpresser->Speak( concept );
+		pExpresser->Speak( aiConcept );
 	}
 }
 

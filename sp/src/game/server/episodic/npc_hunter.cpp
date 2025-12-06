@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Small, fast version of the strider. Goes where striders cannot, such
 // as into buildings. Best killed with physics objects and explosives.
@@ -6566,7 +6566,7 @@ const char *CNPC_Hunter::SelectRandomExpressionForState( NPC_STATE state )
 	if ( !hunter_random_expressions.GetBool() )
 		return NULL;
 
-	char *szExpressions[4] =
+	const char *szExpressions[4] =
 	{
 		"scenes/npc/hunter/hunter_scan.vcd",
 		"scenes/npc/hunter/hunter_eyeclose.vcd",

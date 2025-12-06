@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -216,7 +216,7 @@ public:
 
 	bool KeyValue( const char *szKeyName, const char *szValue );
 
-	void SpeakIfAllowed( const char *concept, AI_CriteriaSet *modifiers = NULL );
+	void SpeakIfAllowed( const char *aiConcept, AI_CriteriaSet *modifiers = NULL );
 	void ModifyOrAppendCriteria( AI_CriteriaSet& set );
 
 	void PainSound( const CTakeDamageInfo &info );
@@ -275,10 +275,10 @@ bool CGenericActorCustom::KeyValue( const char *szKeyName, const char *szValue )
 //-----------------------------------------------------------------------------
 // Purpose: Speak concept
 //-----------------------------------------------------------------------------
-void CGenericActorCustom::SpeakIfAllowed( const char *concept, AI_CriteriaSet *modifiers )
+void CGenericActorCustom::SpeakIfAllowed( const char *aiConcept, AI_CriteriaSet *modifiers )
 {
 	AI_CriteriaSet empty;
-	Speak( concept, modifiers ? *modifiers : empty );
+	Speak( aiConcept, modifiers ? *modifiers : empty );
 }
 
 //-----------------------------------------------------------------------------
@@ -562,7 +562,7 @@ void CFlextalkActor::ProcessSceneEvents( void )
 		} 
 		else if (m_flextime < gpGlobals->curtime)
 		{
-			m_flextime = gpGlobals->curtime + random->RandomFloat( 0.3, 0.5 ) * (30.0 / GetNumFlexControllers());
+			m_flextime = gpGlobals->curtime + random->RandomFloat( 0.3, 0.5 ) * (30.0 / static_cast<int>(GetNumFlexControllers()));
 			m_flexnum = (LocalFlexController_t)random->RandomInt( 0, GetNumFlexControllers() - 1 );
 
 			if (m_flextarget[m_flexnum] == 1)

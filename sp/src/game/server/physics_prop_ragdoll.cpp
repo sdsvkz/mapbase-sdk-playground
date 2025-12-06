@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -1518,7 +1518,7 @@ CBaseEntity *CreateServerRagdoll( CBaseAnimating *pAnimating, int forceBone, con
 
 		//Force pAnimating to position the deathpose
 		pAnimating->SetSequence(deathpose);
-		pAnimating->SetCycle((float)deathframe / MAX_DEATHPOSE_FRAMES);
+		pAnimating->SetCycle((float)deathframe / static_cast<int>(MAX_DEATHPOSE_FRAMES));
 
 		//Store the position
 		pAnimating->SetupBones(pBoneToWorldNext, BONE_USED_BY_ANYTHING);

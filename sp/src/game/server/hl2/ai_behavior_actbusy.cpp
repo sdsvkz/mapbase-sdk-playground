@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -1756,15 +1756,15 @@ void CAI_ActBusyBehavior::PlaySoundForActBusy( busyanimparts_t AnimPart )
 			if ( pExpresser )
 			{
 #ifdef NEW_RESPONSE_SYSTEM
-				CAI_Concept concept = STRING(pBusyAnim->iszSounds[AnimPart]);
+				CAI_Concept aiConcept = STRING(pBusyAnim->iszSounds[AnimPart]);
 #else
-				const char *concept = STRING(pBusyAnim->iszSounds[AnimPart]);
+				const char *aiConcept = STRING(pBusyAnim->iszSounds[AnimPart]);
 #endif
 
 				// Must be able to speak the concept
-				if ( !pExpresser->IsSpeaking() && pExpresser->CanSpeakConcept( concept ) )
+				if ( !pExpresser->IsSpeaking() && pExpresser->CanSpeakConcept( aiConcept ) )
 				{
-					pExpresser->Speak( concept );
+					pExpresser->Speak( aiConcept );
 				}
 			}
 		}

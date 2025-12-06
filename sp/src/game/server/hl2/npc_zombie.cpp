@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: A slow-moving, once-human headcrab victim with only melee attacks.
 //
@@ -1040,7 +1040,7 @@ public:
 	void Spawn( void );
 	void Precache( void );
 
-	void SpeakIfAllowed( const char *concept, AI_CriteriaSet *modifiers = NULL );
+	void SpeakIfAllowed( const char *aiConcept, AI_CriteriaSet *modifiers = NULL );
 	void ModifyOrAppendCriteria( AI_CriteriaSet& set );
 	virtual CAI_Expresser *CreateExpresser( void );
 	virtual CAI_Expresser *GetExpresser() { return m_pExpresser; }
@@ -1212,9 +1212,9 @@ const char *CZombieCustom::GetMoanSound( int nSound )
 
 #ifdef NEW_RESPONSE_SYSTEM
 	AI_Response response;
-	CAI_Concept concept = "TLK_ZOMBIE_MOAN";
-	concept.SetSpeaker( this );
-	if (!FindResponse( response, concept, &modifiers ))
+	CAI_Concept aiConcept = "TLK_ZOMBIE_MOAN";
+	aiConcept.SetSpeaker( this );
+	if (!FindResponse( response, aiConcept, &modifiers ))
 		return "NPC_BaseZombie.Moan1";
 #else
 	AI_Response *response = SpeakFindResponse(TLK_ZOMBIE_MOAN, modifiers);
@@ -1261,10 +1261,10 @@ void CZombieCustom::AttackSound( void )
 //-----------------------------------------------------------------------------
 // Purpose: Speak concept
 //-----------------------------------------------------------------------------
-void CZombieCustom::SpeakIfAllowed(const char *concept, AI_CriteriaSet *modifiers)
+void CZombieCustom::SpeakIfAllowed(const char *aiConcept, AI_CriteriaSet *modifiers)
 {
 	AI_CriteriaSet empty;
-	Speak( concept, modifiers ? *modifiers : empty );
+	Speak( aiConcept, modifiers ? *modifiers : empty );
 }
 
 //-----------------------------------------------------------------------------

@@ -2199,7 +2199,7 @@ ClientShadowHandle_t CClientShadowMgr::CreateShadow( ClientEntityHandle_t entity
 {
 	// We don't really need a model entity handle for a projective light source, so use an invalid one.
 	flags &= ~SHADOW_FLAGS_PROJECTED_TEXTURE_TYPE_MASK;
-	flags |= SHADOW_FLAGS_SHADOW | SHADOW_FLAGS_TEXTURE_DIRTY;
+	flags |= SHADOW_FLAGS_SHADOW | static_cast<int>(SHADOW_FLAGS_TEXTURE_DIRTY);
 	ClientShadowHandle_t shadowHandle = CreateProjectedTexture( entity, flags );
 
 	IClientRenderable *pRenderable = ClientEntityList().GetClientRenderableFromHandle( entity );
