@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -155,7 +155,7 @@ CVarDLLIdentifier_t ConCommandBase::GetDLLIdentifier() const
 //-----------------------------------------------------------------------------
 void ConCommandBase::Create( const char *pName, const char *pHelpString /*= 0*/, int flags /*= 0*/ )
 {
-	static char *empty_string = "";
+	static const char *empty_string = "";
 
 	m_bRegistered = false;
 
@@ -1054,7 +1054,7 @@ const char *ConVar::GetDefault( void ) const
 
 void ConVar::SetDefault( const char *pszDefault ) 
 { 
-	static char *empty_string = "";
+	static const char *empty_string = "";
 	m_pszDefaultValue = pszDefault ? pszDefault : empty_string;
 	Assert( m_pszDefaultValue );
 }

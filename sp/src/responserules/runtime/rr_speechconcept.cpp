@@ -1,4 +1,4 @@
-//========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
+ï»¿//========= Copyright ï¿½ 1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose:
 //
@@ -46,8 +46,8 @@ CRR_Concept &CRR_Concept::operator=(const char *fromString)
 
 bool CRR_Concept::operator==(const char *pszConcept)
 {
-	int otherConcept = g_pRRConceptTable->Find(pszConcept);
-	return ( otherConcept != UTL_INVAL_SYMBOL && otherConcept == m_iConcept );
+	UtlSymId_t otherConcept = g_pRRConceptTable->Find(pszConcept);
+	return ( otherConcept != UTL_INVAL_SYMBOL && otherConcept == static_cast<UtlSymId_t>(m_iConcept) );
 }
 
 const char *CRR_Concept::GetStringConcept() const

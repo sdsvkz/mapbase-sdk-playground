@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -15119,7 +15119,7 @@ void CAI_BaseNPC::ParseScriptedNPCInteractions(void)
 					sInteraction.flDistSqr = (DSS_MAX_DIST * DSS_MAX_DIST);
 
 					// Misc. response criteria
-					char* szCriteria = "";
+					const char* szCriteria = "";
 
 					KeyValues* pCurNode = pkvNode->GetFirstSubKey();
 					const char* szName = NULL;

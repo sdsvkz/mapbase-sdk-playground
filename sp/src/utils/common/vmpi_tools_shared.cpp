@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -200,19 +200,19 @@ int VMPI_SendFileChunk( const void *pvChunkPrefix, int lenPrefix, tchar const *p
 	pvMappedData = ::MapViewOfFile( hMapping, FILE_MAP_READ, 0, 0, 0 );
 	if ( !pvMappedData )
 		goto done;
+	{
+		int iMappedFileSize = ::GetFileSize(hFile, NULL);
+		if (INVALID_FILE_SIZE == iMappedFileSize)
+			goto done;
 
-	int iMappedFileSize = ::GetFileSize( hFile, NULL );
-	if ( INVALID_FILE_SIZE == iMappedFileSize )
-		goto done;
-
-	// Send the data over VMPI
-	if ( VMPI_Send3Chunks(
-		pvChunkPrefix, lenPrefix,
-		&iMappedFileSize, sizeof( iMappedFileSize ),
-		pvMappedData, iMappedFileSize,
-		VMPI_MASTER_ID ) )
-		iResult = iMappedFileSize;
-
+		// Send the data over VMPI
+		if (VMPI_Send3Chunks(
+			pvChunkPrefix, lenPrefix,
+			&iMappedFileSize, sizeof(iMappedFileSize),
+			pvMappedData, iMappedFileSize,
+			VMPI_MASTER_ID))
+			iResult = iMappedFileSize;
+	}
 	// Fall-through for cleanup code to execute
 done:
 	if ( pvMappedData )
@@ -291,7 +291,7 @@ void VMPI_ExceptionFilter( unsigned long uCode, void *pvExceptionInfo )
 	struct
 	{
 		int code;
-		char *pReason;
+		const char *pReason;
 	} errors[] =
 	{
 		ERR_RECORD( EXCEPTION_ACCESS_VIOLATION ),
@@ -319,7 +319,7 @@ void VMPI_ExceptionFilter( unsigned long uCode, void *pvExceptionInfo )
 
 	int nErrors = sizeof( errors ) / sizeof( errors[0] );
 	int i=0;
-	char *pchReason = NULL;
+	const char *pchReason = NULL;
 	char chUnknownBuffer[32];
 	for ( i; ( i < nErrors ) && !pchReason; i++ )
 	{

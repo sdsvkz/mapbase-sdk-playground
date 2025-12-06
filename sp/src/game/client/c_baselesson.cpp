@@ -1,4 +1,4 @@
-//========= Copyright © 1996-2008, Valve Corporation, All rights reserved. ============//
+ï»¿//========= Copyright ï¿½ 1996-2008, Valve Corporation, All rights reserved. ============//
 //
 // Purpose:		Client handler implementations for instruction players how to play
 //
@@ -24,7 +24,7 @@
 #include "tier0/memdbgon.h"
 
 //=========================================================
-// Configuración
+// Configuraciï¿½n
 //=========================================================
 
 #define LESSON_PRIORITY_MAX 1000
@@ -1770,7 +1770,7 @@ void CScriptedIconLesson::InitElementsFromKeys( CUtlVector< LessonElement_t > *p
 		pchToken = strtok( szSubKeyName, " " );
 		_fieldtypes paramType = LessonParamTypeFromString( pchToken );
 
-		char *pchParam = "";
+		const char *pchParam = "";
 
 		if ( paramType != FIELD_VOID )
 		{

@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: particle system definitions
 //
@@ -2238,7 +2238,7 @@ FORCEINLINE int CParticleCollection::GetControlPointParent( int nControlPoint ) 
 
 FORCEINLINE bool CParticleCollection::IsValid( void ) const 
 { 
-	return ( m_pDef != NULL && m_pDef->GetMaterial() );  
+	return ( m_pDef.m_pObject != nullptr && m_pDef->GetMaterial() );  
 }
 
 

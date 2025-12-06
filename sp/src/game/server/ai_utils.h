@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: Simple, small, free-standing tools for building AIs
 //
@@ -70,7 +70,7 @@ public:
 
 	bool IsMarkSet()
 	{
-		return ( m_flMarkTolerance != NO_MARK );
+		return ( m_flMarkTolerance != static_cast<int>(NO_MARK) );
 	}
 
 	bool TargetMoved( CBaseEntity *pEntity )

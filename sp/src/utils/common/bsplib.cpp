@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -826,7 +826,7 @@ void AddFileToPak( IZip *pak, const char *relativename, const char *fullpath )
 //			*data - 
 //			length - 
 //-----------------------------------------------------------------------------
-void AddBufferToPak( IZip *pak, const char *pRelativeName, void *data, int length, bool bTextMode )
+void AddBufferToPak( IZip *pak, const char *pRelativeName, const void *data, int length, bool bTextMode )
 {
 	pak->AddBufferToZip( pRelativeName, data, length, bTextMode );
 }
@@ -3057,7 +3057,7 @@ void UnparseEntities (void)
 	dentdata[entdatasize-1] = 0;
 }
 
-void PrintEntity (entity_t *ent)
+void PrintEntity (const entity_t *ent)
 {
 	epair_t	*ep;
 	
@@ -3087,7 +3087,7 @@ void SetKeyValue(entity_t *ent, const char *key, const char *value)
 	ep->value = copystring(value);
 }
 
-char 	*ValueForKey (entity_t *ent, char *key)
+const char 	*ValueForKey (const entity_t *ent, const char *key)
 {
 	for (epair_t *ep=ent->epairs ; ep ; ep=ep->next)
 		if (!Q_stricmp (ep->key, key) )
@@ -3095,13 +3095,13 @@ char 	*ValueForKey (entity_t *ent, char *key)
 	return "";
 }
 
-vec_t	FloatForKey (entity_t *ent, char *key)
+vec_t	FloatForKey (const entity_t *ent, const char *key)
 {
-	char *k = ValueForKey (ent, key);
+	const char *k = ValueForKey (ent, key);
 	return atof(k);
 }
 
-vec_t	FloatForKeyWithDefault (entity_t *ent, char *key, float default_value)
+vec_t	FloatForKeyWithDefault (const entity_t *ent, const char *key, float default_value)
 {
 	for (epair_t *ep=ent->epairs ; ep ; ep=ep->next)
 		if (!Q_stricmp (ep->key, key) )
@@ -3111,24 +3111,24 @@ vec_t	FloatForKeyWithDefault (entity_t *ent, char *key, float default_value)
 
 
 
-int		IntForKey (entity_t *ent, char *key)
+int		IntForKey (const entity_t *ent, const char *key)
 {
-	char *k = ValueForKey (ent, key);
+	const char *k = ValueForKey (ent, key);
 	return atol(k);
 }
 
-int		IntForKeyWithDefault(entity_t *ent, char *key, int nDefault )
+int		IntForKeyWithDefault(const entity_t *ent, const char *key, int nDefault )
 {
-	char *k = ValueForKey (ent, key);
+	const char *k = ValueForKey (ent, key);
 	if ( !k[0] )
 		return nDefault;
 	return atol(k);
 }
 
-void 	GetVectorForKey (entity_t *ent, char *key, Vector& vec)
+void 	GetVectorForKey (const entity_t *ent, const char *key, Vector& vec)
 {
 
-	char *k = ValueForKey (ent, key);
+	const char *k = ValueForKey (ent, key);
 // scanf into doubles, then assign, so it is vec_t size independent
 	double	v1, v2, v3;
 	v1 = v2 = v3 = 0;
@@ -3138,11 +3138,11 @@ void 	GetVectorForKey (entity_t *ent, char *key, Vector& vec)
 	vec[2] = v3;
 }
 
-void 	GetVector2DForKey (entity_t *ent, char *key, Vector2D& vec)
+void 	GetVector2DForKey (const entity_t *ent, const char *key, Vector2D& vec)
 {
 	double	v1, v2;
 
-	char *k = ValueForKey (ent, key);
+	const char *k = ValueForKey (ent, key);
 // scanf into doubles, then assign, so it is vec_t size independent
 	v1 = v2 = 0;
 	sscanf (k, "%lf %lf", &v1, &v2);
@@ -3150,9 +3150,9 @@ void 	GetVector2DForKey (entity_t *ent, char *key, Vector2D& vec)
 	vec[1] = v2;
 }
 
-void 	GetAnglesForKey (entity_t *ent, char *key, QAngle& angle)
+void 	GetAnglesForKey (const entity_t *ent, const char *key, QAngle& angle)
 {
-	char	*k;
+	const char	*k;
 	double	v1, v2, v3;
 
 	k = ValueForKey (ent, key);

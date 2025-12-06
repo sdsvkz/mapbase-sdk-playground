@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: a fast growable hashtable with stored hashes, L2-friendly behavior.
 // Useful as a string dictionary or a low-overhead set/map for small POD types.
@@ -336,7 +336,7 @@ void CUtlHashtable<KeyT, ValueT, KeyHashT, KeyIsEqualT, AltKeyT>::BumpEntry( uns
 
 	entry_t* table = m_table.Base();
 	unsigned int slotmask = m_table.Count()-1;
-	unsigned int new_flags_and_hash = table[idx].flags_and_hash & (FLAG_LAST | MASK_HASH);
+	unsigned int new_flags_and_hash = table[idx].flags_and_hash & (FLAG_LAST | static_cast<unsigned int>(MASK_HASH));
 
 	unsigned int chainid = entry_t::IdealIndex( new_flags_and_hash, slotmask );
 

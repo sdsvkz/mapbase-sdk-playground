@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -2182,7 +2182,7 @@ ClientShadowHandle_t CClientShadowMgr::CreateFlashlight( const FlashlightState_t
 	// We don't really need a model entity handle for a projective light source, so use an invalid one.
 	static ClientEntityHandle_t invalidHandle = INVALID_CLIENTENTITY_HANDLE;
 
-	int shadowFlags = SHADOW_FLAGS_FLASHLIGHT | SHADOW_FLAGS_LIGHT_WORLD;
+	int shadowFlags = SHADOW_FLAGS_FLASHLIGHT | static_cast<int>(SHADOW_FLAGS_LIGHT_WORLD);
 	if( lightState.m_bEnableShadows && r_flashlightdepthtexture.GetBool() )
 	{
 		shadowFlags |= SHADOW_FLAGS_USE_DEPTH_TEXTURE;

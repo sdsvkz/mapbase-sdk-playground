@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: Places "detail" objects which are client-only renderable things
 //
@@ -581,7 +581,7 @@ void EmitStaticProps()
 	int i;
 	for ( i = 0; i < num_entities; ++i)
 	{
-		char* pEntity = ValueForKey(&entities[i], "classname");
+		const char* pEntity = ValueForKey(&entities[i], "classname");
 		if (!Q_strcmp(pEntity, "info_lighting"))
 		{
 			s_LightingInfo.AddToTail(i);
@@ -591,7 +591,7 @@ void EmitStaticProps()
 	// Emit specifically specified static props
 	for ( i = 0; i < num_entities; ++i)
 	{
-		char* pEntity = ValueForKey(&entities[i], "classname");
+		const char* pEntity = ValueForKey(&entities[i], "classname");
 #ifdef MAPBASE
 		const int iInsertAsStatic = IntForKey( &entities[i], "insertasstaticprop" ); // If the key is absent, IntForKey will return 0.
 		bool bInsertAsStatic = g_bPropperInsertAllAsStatic;
@@ -612,7 +612,7 @@ void EmitStaticProps()
 #ifdef MAPBASE
 			if ( !strcmp( pEntity, "propper_model" ) )
 			{
-				char* pModelName = ValueForKey( &entities[i], "modelname" );
+				const char* pModelName = ValueForKey( &entities[i], "modelname" );
 			
 				// The modelname keyvalue lacks 'models/' at the start and '.mdl' at the end, so we have to add them.	
 				char modelpath[MAX_VALUE];

@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -1085,12 +1085,12 @@ void CClient_Precipitation::UpdateParticlePrecip( C_BasePlayer *pPlayer )
 			if ( !bInside && SubFloat( FindLowestSIMD3( Result.HitDistance ), 0 ) >= m_flParticleInnerDist )
 			{
 				// Kill the inner rain if it's previously been in use
-				if ( m_pParticlePrecipInnerNear != NULL )
+				if ( m_pParticlePrecipInnerNear.m_pObject != nullptr )
 				{
 					DestroyInnerParticlePrecip();
 				}
 				// Update if we've already got systems, otherwise, create them.
-				if ( m_pParticlePrecipOuter != NULL )
+				if ( m_pParticlePrecipOuter.m_pObject != nullptr )
 				{
 					m_pParticlePrecipOuter->SetControlPoint( 1,  vOffsetPos );
 					m_pParticlePrecipOuter->SetControlPoint( 3, vDensity );
@@ -1105,12 +1105,12 @@ void CClient_Precipitation::UpdateParticlePrecip( C_BasePlayer *pPlayer )
 				// Update if we've already got systems, otherwise, create them.
 #ifdef MAPBASE
 				// The outer can now be suppressed without interfering with other functionality
-				if ( m_pParticlePrecipOuter != NULL )
+				if ( m_pParticlePrecipOuter.m_pObject != nullptr)
 				{
 					m_pParticlePrecipOuter->SetControlPoint( 1, vOffsetPos );
 					m_pParticlePrecipOuter->SetControlPoint( 3, vDensity );
 				}
-				if ( m_pParticlePrecipInnerNear != NULL && m_pParticlePrecipInnerFar != NULL )
+				if ( m_pParticlePrecipInnerNear.m_pObject != nullptr && m_pParticlePrecipInnerFar.m_pObject != nullptr )
 				{
 					m_pParticlePrecipInnerNear->SetControlPoint( 1, vOffsetPosNear );
 					m_pParticlePrecipInnerFar->SetControlPoint( 1, vOffsetPosFar );
@@ -1118,7 +1118,11 @@ void CClient_Precipitation::UpdateParticlePrecip( C_BasePlayer *pPlayer )
 					m_pParticlePrecipInnerFar->SetControlPoint( 3, vDensity );
 				}
 #else
-				if ( m_pParticlePrecipInnerNear != NULL  && m_pParticlePrecipInnerFar != NULL  &&  m_pParticlePrecipOuter != NULL )
+				if (
+					m_pParticlePrecipInnerNear.m_pObject != nullptr &&
+					m_pParticlePrecipInnerFar.m_pObject != nullptr &&
+					m_pParticlePrecipOuter.m_pObject != nullptr
+				)
 				{
 					m_pParticlePrecipOuter->SetControlPoint( 1, vOffsetPos );
 					m_pParticlePrecipInnerNear->SetControlPoint( 1, vOffsetPosNear );
@@ -1217,12 +1221,12 @@ void CClient_Precipitation::InitializeParticlePrecip( void )
 
 void CClient_Precipitation::DestroyInnerParticlePrecip( void )
 {
-	if ( m_pParticlePrecipInnerFar != NULL )
+	if ( m_pParticlePrecipInnerFar.m_pObject != nullptr )
 	{
 		m_pParticlePrecipInnerFar->StopEmission();
 		m_pParticlePrecipInnerFar = NULL;
 	}
-	if ( m_pParticlePrecipInnerNear != NULL )
+	if ( m_pParticlePrecipInnerNear.m_pObject != nullptr )
 	{
 		m_pParticlePrecipInnerNear->StopEmission();
 		m_pParticlePrecipInnerNear = NULL;
@@ -1231,7 +1235,7 @@ void CClient_Precipitation::DestroyInnerParticlePrecip( void )
 
 void CClient_Precipitation::DestroyOuterParticlePrecip( void )
 {
-	if ( m_pParticlePrecipOuter != NULL )
+	if ( m_pParticlePrecipOuter.m_pObject != nullptr )
 	{
 		m_pParticlePrecipOuter->StopEmission();
 		m_pParticlePrecipOuter = NULL;
