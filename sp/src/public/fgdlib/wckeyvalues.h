@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -152,9 +152,11 @@ protected:
 	CUtlDict<MDkeyvalue,unsigned short> m_KeyValues;
 };
 
+template<typename T>
+concept DummyWCKVBase = std::same_as<T, WCKVBase_Dict> || std::same_as<T, WCKVBase_Vector>;
 
 // See below for typedefs of this class you can use.
-template<class Base>
+template<DummyWCKVBase Base>
 class WCKeyValuesT : public Base
 {
 public:
@@ -185,10 +187,10 @@ typedef WCKeyValuesT<WCKVBase_Vector> WCKeyValuesVector;
 // Purpose: 
 // Input  : nIndex - 
 //-----------------------------------------------------------------------------
-template<class Base>
+template<DummyWCKVBase Base>
 inline const char *WCKeyValuesT<Base>::GetKey(int nIndex) const
 {
-	return(m_KeyValues.Element(nIndex).szKey);
+	return(this->m_KeyValues.Element(nIndex).szKey);
 }
 
 
@@ -197,10 +199,10 @@ inline const char *WCKeyValuesT<Base>::GetKey(int nIndex) const
 // Input  : nIndex - 
 // Output : MDKeyValue
 //-----------------------------------------------------------------------------
-template<class Base>
+template<DummyWCKVBase Base>
 inline MDkeyvalue &WCKeyValuesT<Base>::GetKeyValue(int nIndex)
 {
-	return(m_KeyValues.Element(nIndex));
+	return(this->m_KeyValues.Element(nIndex));
 }
 
 
@@ -209,10 +211,10 @@ inline MDkeyvalue &WCKeyValuesT<Base>::GetKeyValue(int nIndex)
 // Input  : nIndex - 
 // Output : MDkeyvalue
 //-----------------------------------------------------------------------------
-template<class Base>
+template<DummyWCKVBase Base>
 inline const MDkeyvalue& WCKeyValuesT<Base>::GetKeyValue(int nIndex) const
 {
-	return(m_KeyValues.Element(nIndex));
+	return(this->m_KeyValues.Element(nIndex));
 }
 
 
@@ -220,10 +222,10 @@ inline const MDkeyvalue& WCKeyValuesT<Base>::GetKeyValue(int nIndex) const
 // Purpose: 
 // Input  : nIndex - 
 //-----------------------------------------------------------------------------
-template<class Base>
+template<DummyWCKVBase Base>
 inline const char *WCKeyValuesT<Base>::GetValue(int nIndex) const
 {
-	return(m_KeyValues.Element(nIndex).szValue);
+	return(this->m_KeyValues.Element(nIndex).szValue);
 }
 
 

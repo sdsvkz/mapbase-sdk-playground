@@ -1,4 +1,4 @@
-//========= Mapbase - https://github.com/mapbase-source/source-sdk-2013 ============//
+﻿//========= Mapbase - https://github.com/mapbase-source/source-sdk-2013 ============//
 //
 // Purpose: This file contains general shared VScript bindings which Mapbase adds onto
 //			what was ported from Alien Swarm instead of cluttering the existing files.
@@ -543,7 +543,7 @@ bool CAnimEventTInstanceHelper::Set( void *p, const char *pszKey, ScriptVariant_
 	}
 	else if (FStrEq( pszKey, "options" ))
 	{
-		char *szOptions;
+		const char *szOptions;
 		if (!variant.AssignTo( &szOptions ))
 		{
 			return false;
