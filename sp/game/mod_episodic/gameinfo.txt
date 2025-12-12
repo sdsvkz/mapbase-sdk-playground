@@ -1,13 +1,11 @@
 "GameInfo"
 {
-	game 		"Mapbase Modding Playground"
+	game 		"My First Episodic Mod"
 	title 		"HALF-LIFE'"
 	title2		""
+	supportsvr	1
 
 	type		singleplayer_only
-	supportsvr	0
-
-	mapbase_core 1
 
 	FileSystem
 	{
@@ -39,18 +37,15 @@
 			// folder.
 			//
 			// Note that this folder is scanned only when the game is booted.
-			game+mod+addon			|gameinfo_path|custom/*
-			game+mod+addon			ep2/custom/*
-			game+mod+addon			episodic/custom/*
-			game+mod+addon			hl2/custom/*
+			game+mod			ep2/custom/*
+			game+mod			episodic/custom/*
+			game+mod			hl2/custom/*
 
 			// Now search loose files.  We'll set the directory containing the gameinfo.txt file
 			// as the first "mod" search path (after any user customizations).  This is also the one
 			// that's used when writing to the "mod" path.
 			game+mod+mod_write+default_write_path		|gameinfo_path|.
 			gamebin				|gameinfo_path|bin
-
-			game+mod			|gameinfo_path|content/*
 
 			// We search VPK files before ordinary folders, because most files will be found in
 			// VPK and we can avoid making thousands of file system calls to attempt to open files
@@ -59,8 +54,6 @@
 			game_lv				hl2/hl2_lv.vpk
 			game+mod			ep2/ep2_english.vpk
 			game+mod			ep2/ep2_pak.vpk
-			game				|all_source_engine_paths|ep2/ep2_english.vpk
-			game				|all_source_engine_paths|ep2/ep2_pak.vpk
 			game				|all_source_engine_paths|episodic/ep1_english.vpk
 			game				|all_source_engine_paths|episodic/ep1_pak.vpk
 			game				|all_source_engine_paths|hl2/hl2_english.vpk
@@ -69,8 +62,6 @@
 			game				|all_source_engine_paths|hl2/hl2_sound_vo_english.vpk
 			game				|all_source_engine_paths|hl2/hl2_sound_misc.vpk
 			game				|all_source_engine_paths|hl2/hl2_misc.vpk
-			game				|all_source_engine_paths|sourcetest/sourcetest_pak.vpk // sourcetest has Lost Coast content
-	  		game				|all_source_engine_paths|lostcoast/lostcoast_pak.vpk // For those using Hammer with Half-Life 2's bin
 			platform			|all_source_engine_paths|platform/platform_misc.vpk
 
 			// Add the HL2 directory as a game search path.  This is also where where writes
