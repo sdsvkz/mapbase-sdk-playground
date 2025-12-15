@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -100,13 +100,16 @@ void CHudSuitPower::OnThink( void )
 	}
 
 	bool flashlightActive = pPlayer->IsFlashlightActive();
-#ifdef MAPBASE
-	bool sprintActive = pPlayer->IsSprintActive();
-#else
-	bool sprintActive = pPlayer->IsSprinting();
-#endif
+// BEGIN VKZ (Infinite Sprint): Not gonna draw sprint state
+//#ifdef MAPBASE
+//	bool sprintActive = pPlayer->IsSprintActive();
+//#else
+//	bool sprintActive = pPlayer->IsSprinting();
+//#endif
+// END VKZ
 	bool breatherActive = pPlayer->IsBreatherActive();
-	int activeDevices = (int)flashlightActive + (int)sprintActive + (int)breatherActive;
+	// VKZ (Infinite Sprint): Not gonna draw sprint state
+	int activeDevices = (int)flashlightActive + /* (int)sprintActive */ + (int)breatherActive;
 
 #ifdef MAPBASE
 	activeDevices += (int)pPlayer->IsCustomDevice0Active() + (int)pPlayer->IsCustomDevice1Active() + (int)pPlayer->IsCustomDevice2Active();
@@ -239,6 +242,7 @@ void CHudSuitPower::Paint()
 
 		if (pPlayer->IsFlashlightActive())
 		{
+			DevMsg("Drawing flashlight text\n");
 			tempString = g_pVGuiLocalize->Find("#Valve_Hud_FLASHLIGHT");
 
 			surface()->DrawSetTextPos(text2_xpos, ypos);
@@ -254,26 +258,28 @@ void CHudSuitPower::Paint()
 			ypos += text2_gap;
 		}
 
-#ifdef MAPBASE
-		if (pPlayer->IsSprintActive())
-#else
-		if (pPlayer->IsSprinting())
-#endif
-		{
-			tempString = g_pVGuiLocalize->Find("#Valve_Hud_SPRINT");
-
-			surface()->DrawSetTextPos(text2_xpos, ypos);
-
-			if (tempString)
-			{
-				surface()->DrawPrintText(tempString, wcslen(tempString));
-			}
-			else
-			{
-				surface()->DrawPrintText(L"SPRINT", wcslen(L"SPRINT"));
-			}
-			ypos += text2_gap;
-		}
+		// BEGIN VKZ (Infinite Sprint): Since sprint doesn't drain power now, no need to paint indicator
+//#ifdef MAPBASE
+//		if (pPlayer->IsSprintActive())
+//#else
+//		if (pPlayer->IsSprinting())
+//#endif
+//		{
+//			tempString = g_pVGuiLocalize->Find("#Valve_Hud_SPRINT");
+//
+//			surface()->DrawSetTextPos(text2_xpos, ypos);
+//
+//			if (tempString)
+//			{
+//				surface()->DrawPrintText(tempString, wcslen(tempString));
+//			}
+//			else
+//			{
+//				surface()->DrawPrintText(L"SPRINT", wcslen(L"SPRINT"));
+//			}
+//			ypos += text2_gap;
+//		}
+		// END VKZ
 
 #ifdef MAPBASE
 		if (pPlayer->IsCustomDevice0Active())

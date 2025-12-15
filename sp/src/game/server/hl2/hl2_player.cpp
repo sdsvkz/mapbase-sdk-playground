@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose:		Player for HL2.
 //
@@ -86,6 +86,9 @@ extern ConVar player_squad_autosummon_enabled;
 #define TIME_IGNORE_FALL_DAMAGE 10.0
 
 extern int gEvilImpulse101;
+
+// VKZ (Always run): Always Run ConVar
+ConVar playground_alwaysrun("playground_alwaysrun", "0", FCVAR_REPLICATED | FCVAR_ARCHIVE, "Enable always run");
 
 ConVar sv_autojump( "sv_autojump", "0" );
 
@@ -664,7 +667,10 @@ CHL2_Player::CHL2_Player()
 #ifdef HL2MP
 	CSuitPowerDevice SuitDeviceSprint( bits_SUIT_DEVICE_SPRINT, 25.0f );				// 100 units in 4 seconds
 #else
-	CSuitPowerDevice SuitDeviceSprint( bits_SUIT_DEVICE_SPRINT, 12.5f );				// 100 units in 8 seconds
+	// BEGIN VKZ (Infinite Sprint): Don't drain aux power when sprinting
+	// CSuitPowerDevice SuitDeviceSprint(bits_SUIT_DEVICE_SPRINT, 12.5f);				// 100 units in 8 seconds
+	CSuitPowerDevice SuitDeviceSprint(bits_SUIT_DEVICE_SPRINT, 0.0f);
+	// END VKZ
 #endif
 
 #ifdef HL2_EPISODIC
@@ -702,8 +708,13 @@ void CHL2_Player::Precache( void )
 {
 	BaseClass::Precache();
 
-	PrecacheScriptSound( "HL2Player.SprintNoPower" );
-	PrecacheScriptSound( "HL2Player.SprintStart" );
+	// VKZ (Always Run): Don't precache sprint sounds if always run is enabled
+	// Always run doesn't play those sounds
+	if (playground_alwaysrun.GetFloat() == 0) {
+		PrecacheScriptSound("HL2Player.SprintStart");
+	}
+	// VKZ (Infinite Sprint): Not required since sprint doesn't drain aux power now
+	//PrecacheScriptSound("HL2Player.SprintNoPower");
 	PrecacheScriptSound( "HL2Player.UseDeny" );
 	PrecacheScriptSound( "HL2Player.FlashLightOn" );
 	PrecacheScriptSound( "HL2Player.FlashLightOff" );
@@ -779,7 +790,8 @@ void CHL2_Player::HandleSpeedChanges( void )
 		}
 		else
 		{
-			if ( !sv_stickysprint.GetBool() )
+			// VKZ (Always Run): Don't stop
+			if ( !sv_stickysprint.GetBool() && playground_alwaysrun.GetFloat() == 0.0f )
 			{
 				StopSprinting();
 			}
@@ -954,6 +966,13 @@ void CHL2_Player::PreThink(void)
 			StopSprinting();
 		}
 	}
+	// BEGIN VKZ (Always Run): When always run is enabled, not already sprinting and can sprint
+	else if ( playground_alwaysrun.GetFloat() != 0.0f && CanSprint() )
+	{
+		// Start sprinting
+		StartSprinting();
+	}
+	// END VKZ
 
 	VPROF_SCOPE_END();
 
@@ -1623,7 +1642,7 @@ bool CHL2_Player::CanSprint()
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-void CHL2_Player::StartAutoSprint() 
+void CHL2_Player::StartAutoSprint()
 {
 	if( IsSprinting() )
 	{
@@ -1641,27 +1660,32 @@ void CHL2_Player::StartAutoSprint()
 //-----------------------------------------------------------------------------
 void CHL2_Player::StartSprinting( void )
 {
-	if( m_HL2Local.m_flSuitPower < 10 )
-	{
-		// Don't sprint unless there's a reasonable
-		// amount of suit power.
-		
-		// debounce the button for sound playing
-		if ( m_afButtonPressed & IN_SPEED )
-		{
-			CPASAttenuationFilter filter( this );
-			filter.UsePredictionRules();
-			EmitSound( filter, entindex(), "HL2Player.SprintNoPower" );
-		}
-		return;
-	}
+	// BEGIN VKZ (Infinite Sprint): Skip minimal power check
+	//if( m_HL2Local.m_flSuitPower < 10 )
+	//{
+	//	// Don't sprint unless there's a reasonable
+	//	// amount of suit power.
+	//	
+	//	// debounce the button for sound playing
+	//	if ( m_afButtonPressed & IN_SPEED )
+	//	{
+	//		CPASAttenuationFilter filter( this );
+	//		filter.UsePredictionRules();
+	//		EmitSound( filter, entindex(), "HL2Player.SprintNoPower" );
+	//	}
+	//	return;
+	//}
+	// END VKZ
 
 	if( !SuitPower_AddDevice( SuitDeviceSprint ) )
 		return;
 
 	CPASAttenuationFilter filter( this );
 	filter.UsePredictionRules();
-	EmitSound( filter, entindex(), "HL2Player.SprintStart" );
+	// VKZ (Always Run): Mute SprintStart sound if always run is on
+	if (playground_alwaysrun.GetFloat() == 0.0f) {
+		EmitSound(filter, entindex(), "HL2Player.SprintStart");
+	}
 
 	SetMaxSpeed( HL2_SPRINT_SPEED );
 	m_fIsSprinting = true;
@@ -1672,6 +1696,9 @@ void CHL2_Player::StartSprinting( void )
 //-----------------------------------------------------------------------------
 void CHL2_Player::StopSprinting( void )
 {
+	// VKZ (Dev)
+	DevMsg("VKZ: StopSprinting called\n");
+
 	if ( m_HL2Local.m_bitsActiveDevices & SuitDeviceSprint.GetDeviceID() )
 	{
 		SuitPower_RemoveDevice( SuitDeviceSprint );
@@ -2394,22 +2421,25 @@ void CHL2_Player::SuitPower_Update( void )
 	{
 		SuitPower_Charge( SUITPOWER_CHARGE_RATE * gpGlobals->frametime );
 	}
-	else if( m_HL2Local.m_bitsActiveDevices )
+	// VKZ (Infinite Sprint): Ignore sprint as it doesn't drain power
+	else if( m_HL2Local.m_bitsActiveDevices != 0x00000000 && m_HL2Local.m_bitsActiveDevices != bits_SUIT_DEVICE_SPRINT )
 	{
 		float flPowerLoad = m_flSuitPowerLoad;
 
-		//Since stickysprint quickly shuts off sprint if it isn't being used, this isn't an issue.
-		if ( !sv_stickysprint.GetBool() )
-		{
-			if( SuitPower_IsDeviceActive(SuitDeviceSprint) )
-			{
-				if( !fabs(GetAbsVelocity().x) && !fabs(GetAbsVelocity().y) )
-				{
-					// If player's not moving, don't drain sprint juice.
-					flPowerLoad -= SuitDeviceSprint.GetDeviceDrainRate();
-				}
-			}
-		}
+		// Since stickysprint quickly shuts off sprint if it isn't being used, this isn't an issue.
+		// BEGIN VKZ (Infinite Sprint): Sprint doesn't drain power now
+		//if ( !sv_stickysprint.GetBool() )
+		//{
+		//	if( SuitPower_IsDeviceActive(SuitDeviceSprint) )
+		//	{
+		//		if( !fabs(GetAbsVelocity().x) && !fabs(GetAbsVelocity().y) )
+		//		{
+		//			// If player's not moving, don't drain sprint juice.
+		//			flPowerLoad -= SuitDeviceSprint.GetDeviceDrainRate();
+		//		}
+		//	}
+		//}
+		// END VKZ
 
 		if( SuitPower_IsDeviceActive(SuitDeviceFlashlight) )
 		{
@@ -2423,10 +2453,13 @@ void CHL2_Player::SuitPower_Update( void )
 		if( !SuitPower_Drain( flPowerLoad * gpGlobals->frametime ) )
 		{
 			// TURN OFF ALL DEVICES!!
-			if( IsSprinting() )
-			{
-				StopSprinting();
-			}
+
+			// BEGIN VKZ (Infinite Sprint): No need to turn off sprint since it doesn't drain power
+			//if( IsSprinting() )
+			//{
+			//	StopSprinting();
+			//}
+			// END VKZ
 
 			if ( Flashlight_UseLegacyVersion() )
 			{
@@ -2471,9 +2504,15 @@ void CHL2_Player::SuitPower_Initialize( void )
 //-----------------------------------------------------------------------------
 bool CHL2_Player::SuitPower_Drain( float flPower )
 {
-	// Suitpower cheat on?
-	if ( sv_infinite_aux_power.GetBool() )
+	if (
+		// Suitpower cheat on?
+		sv_infinite_aux_power.GetBool() ||
+		// VKZ (Infinite Sprint): Drain nothing
+		flPower == 0.0f
+		)
+	{
 		return true;
+	}
 
 	m_HL2Local.m_flSuitPower -= flPower;
 
@@ -2563,12 +2602,13 @@ bool CHL2_Player::SuitPower_RemoveDevice( const CSuitPowerDevice &device )
 bool CHL2_Player::SuitPower_ShouldRecharge( void )
 {
 	// Make sure all devices are off.
-	if( m_HL2Local.m_bitsActiveDevices != 0x00000000 )
+	// VKZ (Infinite Sprint): Ignore the case where only sprint is on, since it doesn't drain power now.
+	if( m_HL2Local.m_bitsActiveDevices != 0x00000000 && m_HL2Local.m_bitsActiveDevices != bits_SUIT_DEVICE_SPRINT )
 		return false;
 
 	// Is the system fully charged?
 	if( m_HL2Local.m_flSuitPower >= 100.0f )
-		return false; 
+		return false;
 
 	// Has the system been in a no-load state for long enough
 	// to begin recharging?
