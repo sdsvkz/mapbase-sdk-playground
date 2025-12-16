@@ -68,14 +68,16 @@ You still cannot run when grabbing something. But thanks for Mapbase, you can en
 ---
 
 ```txt
-
 //=========================================================================================================================
+```
 
                Mapbase v8.0 - Source 2013
 	https://github.com/mapbase-source/source-sdk-2013
 		https://www.moddb.com/mods/mapbase
-	
+
+```txt
 //=========================================================================================================================
+```
 
 This repository contains code from Mapbase, a modification of the Source 2013 SDK which serves as a combined package
 of general-purpose improvements, fixes, and utility features for mods.
@@ -94,7 +96,9 @@ Mapbase's main content in this repository may include:
 For more information, view this page:
 https://github.com/mapbase-source/source-sdk-2013/wiki/Introduction-to-Mapbase
 
+```txt
 //=========================================================================================================================
+```
 
 Mapbase is an open-source project and its contents can be distributed and used at the discretion of its users. However, this project contains content from
 a vast number of different sources which have their own licensing or attribution requirements. We try to handle most of that ourselves, but users who plan on
@@ -103,7 +107,9 @@ distributing Mapbase content are expected to comply with certain rules.
 	Up-to-date information about Mapbase content usage and credit are addressed in this article on Mapbase's wiki:
 		https://github.com/mapbase-source/source-sdk-2013/wiki/Using-Mapbase-Content
 
+```txt
 //=========================================================================================================================
+```
 
 >>>>>>>> EXTERNAL CONTENT USED IN MAPBASE <<<<<<<<
 
@@ -141,7 +147,9 @@ including radial fog, rope code, and treesway)
 - https://github.com/entropy-zero/source-sdk-2013 (skill_changed game event)
 - https://github.com/Nbc66/source-sdk-2013-ce/tree/v142 (Base for VS2019 toolset support)
 
+```txt
 //-------------------------------------------------------------------------------------------------------------------------
+```
 
 Valve Developer Community (VDC) sources:
 
@@ -169,7 +177,9 @@ interchangeable arms; this may change in the future)
 - https://developer.valvesoftware.com/wiki/Func_clip_vphysics ("Start Disabled" keyvalue fix)
 - https://developer.valvesoftware.com/wiki/Importing_CSS_Weapons_Into_HL2 (CS:S viewmodel chirality)
 
+```txt
 //-------------------------------------------------------------------------------------------------------------------------
+```
 
 Direct contributions:
 
@@ -286,7 +296,9 @@ Direct contributions:
 =-- https://github.com/mapbase-source/source-sdk-2013/pull/264 (Outputs for vgui_screen)
 =-- https://github.com/mapbase-source/source-sdk-2013/pull/427 (CBaseCombatWeapon::WeaponClassFromString typo fix [committed by vizzys])
 
+```txt
 //-------------------------------------------------------------------------------------------------------------------------
+```
 
 Other sources:
 
@@ -304,11 +316,15 @@ Other sources:
 - Vortigaunt LOS fix originally created by dky.tehkingd.u for HL2:CE
 - https://combineoverwiki.net/wiki/File:Combine_main_symbol.svg ("icon_combine" instructor icon in "materials/vgui/hud/gameinstructor_hl2_1"; This is asset-based and not reflected in the code)
 
+```txt
 //-------------------------------------------------------------------------------------------------------------------------
+```
 
 If there is anything missing from this list, please contact Blixibon.
 
+```txt
 //=========================================================================================================================
+```
 
 Aside from the content list above, Mapbase has more descriptive and up-to-date credits on this wiki article:
 https://github.com/mapbase-source/source-sdk-2013/wiki/Mapbase-Credits
@@ -317,15 +333,19 @@ Other relevant articles:
 * https://github.com/mapbase-source/source-sdk-2013/wiki/Mapbase-Disclaimers
 * https://github.com/mapbase-source/source-sdk-2013/wiki/Frequently-Asked-Questions-(FAQ)
 
+```txt
 //-------------------------------------------------------------------------------------------------------------------------
+```txt
 
 In memory of Holly Liberatore (moofemp)
 
+```txt
 //=========================================================================================================================
+```txt
 
 Please see the Source SDK 2013 license below:
 
-
+```txt
 
                SOURCE 1 SDK LICENSE
 
