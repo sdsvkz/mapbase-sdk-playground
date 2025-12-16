@@ -1,7 +1,9 @@
 # Playground
 
 A fork of Mapbase v8.0.
+
 Currently, I only care about singleplayer branch. Multiplayer branch is left untouched.
+
 And currently, I only develop on Windows (x86). There is no guarantee whether it compiles for other platforms.
 
 ## Requirements
@@ -17,14 +19,18 @@ And currently, I only develop on Windows (x86). There is no guarantee whether it
 ### Preprocessor Directives
 
 Each functionality has a macro to control whether to enable it. You can find the definitions and VPC flags in `vpc_script/source_base.vpc`.
+
 By design, disabled functionality should behaves the same as original.
 
 ## Functionalities
 
-- [x] Fix Quantum Crouch
-- [x] Infinite Sprint
-- [-] Always Run
-- [] Adjustable Crouching Speed
+✅ Fix Quantum Crouch
+
+✅ Infinite Sprint
+
+🚧 Always Run
+
+🌱 Adjustable Crouching Speed
 
 ### Fix Quantum Crouch
 
@@ -328,7 +334,7 @@ THIS DOCUMENT DESCRIBES A CONTRACT BETWEEN YOU AND VALVE
 CORPORATION ("Valve").  PLEASE READ IT BEFORE DOWNLOADING OR USING 
 THE SOURCE ENGINE SDK ("SDK"). BY DOWNLOADING AND/OR USING THE 
 SOURCE ENGINE SDK YOU ACCEPT THIS LICENSE. IF YOU DO NOT AGREE TO 
-THE TERMS OF THIS LICENSE PLEASE DON�T DOWNLOAD OR USE THE SDK.  
+THE TERMS OF THIS LICENSE PLEASE DON T DOWNLOAD OR USE THE SDK.  
 
   You may, free of charge, download and use the SDK to develop a modified Valve game 
 running on the Source engine.  You may distribute your modified Valve game in source and 
