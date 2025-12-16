@@ -1,4 +1,4 @@
-//-----------------------------------------------------------------------------
+﻿//-----------------------------------------------------------------------------
 //	source_base.VPC
 //
 //  This is the base VPC file that is included by all others, on all platforms.
@@ -19,9 +19,17 @@
 
 // Mapbase functionality conditionals
 $Conditional MAPBASE	"1" // Equivalent to (and required for) our MAPBASE preprocessor defined below
-$Conditional MAPBASE_RPC	"0" // Toggles Mapbase's Rich Presence Client implementations (requires discord-rpc.dll in game bin)
+$Conditional MAPBASE_RPC	"1" // Toggles Mapbase's Rich Presence Client implementations (requires discord-rpc.dll in game bin)
 $Conditional MAPBASE_VSCRIPT	"1" // Toggles VScript implementation (note: interfaces still exist, just the provided implementation is not present)
 $Conditional NEW_RESPONSE_SYSTEM	"1" // Toggles the new Response System library based on the Alien Swarm SDK
+
+//-----------------------------------------------------------------------------
+
+// VKZ additional functionality conditionals
+$Conditional VKZ_DEV					"0" // Additional debugging codes
+$Conditional VKZ_INFINITE_SPRINT		"1" // Infinite Sprint
+$Conditional VKZ_ALWAYS_RUN				"1" // Always Run
+$Conditional VKZ_FIX_QUANTUM_CROUCH		"1" // Fix Quantum Crouch
 
 //-----------------------------------------------------------------------------
 
@@ -40,6 +48,12 @@ $Configuration "Debug"
 
 		// Mapbase base definitions
 		$PreprocessorDefinitions		"$BASE;MAPBASE"		[$MAPBASE]
+
+    // VKZ
+		$PreprocessorDefinitions		"$BASE;VKZ_DEV"		[$VKZ_DEV]
+		$PreprocessorDefinitions		"$BASE;VKZ_INFINITE_SPRINT"		[$VKZ_INFINITE_SPRINT]
+		$PreprocessorDefinitions		"$BASE;VKZ_ALWAYS_RUN"		[$VKZ_ALWAYS_RUN]
+		$PreprocessorDefinitions		"$BASE;VKZ_FIX_QUANTUM_CROUCH"		[$VKZ_FIX_QUANTUM_CROUCH]
 	}
 }
 
@@ -58,5 +72,11 @@ $Configuration "Release"
 
 		// Mapbase base definitions
 		$PreprocessorDefinitions		"$BASE;MAPBASE"		[$MAPBASE]
+
+		// VKZ
+		$PreprocessorDefinitions		"$BASE;VKZ_DEV"		[$VKZ_DEV]
+		$PreprocessorDefinitions		"$BASE;VKZ_INFINITE_SPRINT"		[$VKZ_INFINITE_SPRINT]
+		$PreprocessorDefinitions		"$BASE;VKZ_ALWAYS_RUN"		[$VKZ_ALWAYS_RUN]
+		$PreprocessorDefinitions		"$BASE;VKZ_FIX_QUANTUM_CROUCH"		[$VKZ_FIX_QUANTUM_CROUCH]
 	}
 }

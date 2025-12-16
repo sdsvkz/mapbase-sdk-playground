@@ -4207,11 +4207,12 @@ void CGameMovement::FinishUnDuckJump( trace_t &trace )
 //-----------------------------------------------------------------------------
 void CGameMovement::FinishDuck( void )
 {
-	// BEGIN VKZ (Fix Quantum Crouch):
-	// https://developer.valvesoftware.com/wiki/General_SDK_Snippets_%26_Fixes#Schrodinger's/Quantum_crouch_fix
-	//if ( player->GetFlags() & FL_DUCKING )
-	//	return;
-	// END VKZ
+
+// https://developer.valvesoftware.com/wiki/General_SDK_Snippets_%26_Fixes#Schrodinger's/Quantum_crouch_fix
+#ifndef VKZ_FIX_QUANTUM_CROUCH
+	if ( player->GetFlags() & FL_DUCKING )
+		return;
+#endif
 
 	player->AddFlag( FL_DUCKING );
 	player->m_Local.m_bDucked = true;

@@ -24,6 +24,23 @@ DECLARE_HUDELEMENT( CHudSuitPower );
 
 #define SUITPOWER_INIT -1
 
+#ifdef VKZ_INFINITE_SPRINT
+// Infinite Sprint ConVar
+ConVar playground_infinite_sprint(
+	"playground_infinite_sprint",
+	"0",
+	FCVAR_REPLICATED | FCVAR_ARCHIVE,
+	"Enable infinite sprint"
+);
+#endif
+
+#ifdef VKZ_INFINITE_SPRINT
+// Returns `true` if infinite sprint is enabled
+inline bool isInfiniteSprintEnabled() {
+	return playground_infinite_sprint.GetFloat() != 0.0f;
+}
+#endif
+
 //-----------------------------------------------------------------------------
 // Purpose: Constructor
 //-----------------------------------------------------------------------------
@@ -100,16 +117,23 @@ void CHudSuitPower::OnThink( void )
 	}
 
 	bool flashlightActive = pPlayer->IsFlashlightActive();
-// BEGIN VKZ (Infinite Sprint): Not gonna draw sprint state
-//#ifdef MAPBASE
-//	bool sprintActive = pPlayer->IsSprintActive();
-//#else
-//	bool sprintActive = pPlayer->IsSprinting();
-//#endif
-// END VKZ
+
+#ifdef MAPBASE
+	bool sprintActive = pPlayer->IsSprintActive();
+#else
+	bool sprintActive = pPlayer->IsSprinting();
+#endif
+
 	bool breatherActive = pPlayer->IsBreatherActive();
-	// VKZ (Infinite Sprint): Not gonna draw sprint state
-	int activeDevices = (int)flashlightActive + /* (int)sprintActive */ + (int)breatherActive;
+#ifndef VKZ_INFINITE_SPRINT
+	int activeDevices = (int)flashlightActive + (int)sprintActive + (int)breatherActive;
+#else
+	int activeDevices = (int)flashlightActive + (int)breatherActive;
+	// Not gonna draw sprint state if enabled
+	if ( !isInfiniteSprintEnabled() ) {
+		activeDevices += (int)sprintActive;
+	}
+#endif
 
 #ifdef MAPBASE
 	activeDevices += (int)pPlayer->IsCustomDevice0Active() + (int)pPlayer->IsCustomDevice1Active() + (int)pPlayer->IsCustomDevice2Active();
@@ -218,7 +242,7 @@ void CHudSuitPower::Paint()
 		surface()->DrawPrintText(L"AUX POWER", wcslen(L"AUX POWER"));
 	}
 
-	if ( m_iActiveSuitDevices )
+	if (m_iActiveSuitDevices)
 	{
 		// draw the additional text
 		int ypos = text2_ypos;
@@ -258,28 +282,32 @@ void CHudSuitPower::Paint()
 			ypos += text2_gap;
 		}
 
-		// BEGIN VKZ (Infinite Sprint): Since sprint doesn't drain power now, no need to paint indicator
-//#ifdef MAPBASE
-//		if (pPlayer->IsSprintActive())
-//#else
-//		if (pPlayer->IsSprinting())
-//#endif
-//		{
-//			tempString = g_pVGuiLocalize->Find("#Valve_Hud_SPRINT");
-//
-//			surface()->DrawSetTextPos(text2_xpos, ypos);
-//
-//			if (tempString)
-//			{
-//				surface()->DrawPrintText(tempString, wcslen(tempString));
-//			}
-//			else
-//			{
-//				surface()->DrawPrintText(L"SPRINT", wcslen(L"SPRINT"));
-//			}
-//			ypos += text2_gap;
-//		}
-		// END VKZ
+#ifdef VKZ_INFINITE_SPRINT
+		// No need to paint indicator if enabled since it doesn't drain aux power
+		if ( !isInfiniteSprintEnabled() )
+#endif
+		{
+#ifdef MAPBASE
+			if (pPlayer->IsSprintActive())
+#else
+			if (pPlayer->IsSprinting())
+#endif
+			{
+				tempString = g_pVGuiLocalize->Find("#Valve_Hud_SPRINT");
+
+				surface()->DrawSetTextPos(text2_xpos, ypos);
+
+				if (tempString)
+				{
+					surface()->DrawPrintText(tempString, wcslen(tempString));
+				}
+				else
+				{
+					surface()->DrawPrintText(L"SPRINT", wcslen(L"SPRINT"));
+				}
+				ypos += text2_gap;
+			}
+		}
 
 #ifdef MAPBASE
 		if (pPlayer->IsCustomDevice0Active())
