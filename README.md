@@ -24,13 +24,13 @@ By design, disabled functionality should behaves the same as original.
 
 ## Functionalities
 
-✅ Fix Quantum Crouch
+✅  Fix Quantum Crouch
 
-✅ Infinite Sprint
+✅  Infinite Sprint
 
-🚧 Always Run
+🚧  Always Run
 
-🌱 Adjustable Crouching Speed
+🌱  Adjustable Crouching Speed
 
 ### Fix Quantum Crouch
 
@@ -65,7 +65,7 @@ Keep sprinting whenever you can. Doesn't affect vehicles.
 You still cannot run when grabbing something. But thanks for Mapbase, you can enable `sv_player_enable_propsprint` and `sv_player_enable_gravgun_sprint` for those Functionalities.
 
 
-
+---
 
 
 //=========================================================================================================================
