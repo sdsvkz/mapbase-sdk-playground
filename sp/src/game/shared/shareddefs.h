@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: Definitions that are shared by the game DLL and the client DLL.
 //
@@ -206,18 +206,28 @@ enum CastVote
 
 //===================================================================================================================
 // suit usage bits
-#define bits_SUIT_DEVICE_SPRINT		0x00000001
-#define bits_SUIT_DEVICE_FLASHLIGHT	0x00000002
-#define bits_SUIT_DEVICE_BREATHER	0x00000004
+
+// VKZ Knowledge (Active Suit Device Bitmask):
+// Every bit represent a device. `1` for enabled, `0` for disabled.
+// checkout references of `CHL2PlayerLocalData::m_bitsActiveDevices` for usage
+
+// 0 is the perfect value because it is the identity for bitmask operations:
+// isSet - `x & 0 = 0 == false`, never set
+// set - `x |= 0 -> x`, no change made
+// unset - `x &= (~0) -> x`, no change mad
+constexpr int bits_SUIT_DEVICE_INVALID =	0x00000000; // 000000
+constexpr int bits_SUIT_DEVICE_SPRINT =		0x00000001; // 000001
+constexpr int bits_SUIT_DEVICE_FLASHLIGHT = 0x00000002; // 000010
+constexpr int bits_SUIT_DEVICE_BREATHER =	0x00000004; // 000100
 
 #ifdef MAPBASE
 // Custom suit power devices
-#define bits_SUIT_DEVICE_CUSTOM0	0x00000008
-#define bits_SUIT_DEVICE_CUSTOM1	0x00000010
-#define bits_SUIT_DEVICE_CUSTOM2	0x00000020
+constexpr int bits_SUIT_DEVICE_CUSTOM0 =	0x00000008; //   1000
+constexpr int bits_SUIT_DEVICE_CUSTOM1 =	0x00000010; //  10000
+constexpr int bits_SUIT_DEVICE_CUSTOM2 =	0x00000020; // 100000
 #endif
 
-#define MAX_SUIT_DEVICES			6		// Mapbase boosts this to 6 for the custom devices
+constexpr int MAX_SUIT_DEVICES = 6; // Mapbase boosts this to 6 for the custom devices
 
 
 //===================================================================================================================

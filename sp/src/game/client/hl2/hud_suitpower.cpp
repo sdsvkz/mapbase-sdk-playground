@@ -26,17 +26,15 @@ DECLARE_HUDELEMENT( CHudSuitPower );
 
 #ifdef VKZ_INFINITE_SPRINT
 // Infinite Sprint ConVar
-ConVar playground_infinite_sprint(
+static ConVar playground_infinite_sprint(
 	"playground_infinite_sprint",
 	"0",
 	FCVAR_REPLICATED | FCVAR_ARCHIVE,
 	"Enable infinite sprint"
 );
-#endif
 
-#ifdef VKZ_INFINITE_SPRINT
 // Returns `true` if infinite sprint is enabled
-inline bool isInfiniteSprintEnabled() {
+static inline bool isInfiniteSprintEnabled() {
 	return playground_infinite_sprint.GetFloat() != 0.0f;
 }
 #endif

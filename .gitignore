@@ -38,6 +38,9 @@ client.lib
 server.pdb
 server.dll
 server.lib
+game_shader_dx9.pdb
+game_shader_dx9.dll
+game_shader_dx9.lib
 
 client.so
 client.so.dbg
@@ -71,15 +74,20 @@ config.cfg
 *.bak
 
 # Build folders
+.vs/
 sp/src/.vs/
 sp/src/game/client/Debug_mod_episodic/
 sp/src/game/client/Debug_mod_hl2/
+sp/src/game/client/Debug_mod_playground/
 sp/src/game/client/Release_mod_episodic/
 sp/src/game/client/Release_mod_hl2/
+sp/src/game/client/Release_mod_playground/
 sp/src/game/server/Debug_mod_episodic/
 sp/src/game/server/Debug_mod_hl2/
+sp/src/game/server/Debug_mod_playground/
 sp/src/game/server/Release_mod_episodic/
 sp/src/game/server/Release_mod_hl2/
+sp/src/game/server/Release_mod_playground/
 sp/src/*/Debug/
 sp/src/*/Release/
 sp/game/*.dll
@@ -93,7 +101,10 @@ sp/src/materialsystem/*.dll
 sp/src/materialsystem/*.pdb
 sp/src/vgui2/*.dll
 sp/src/vgui2/*.pdb
+sp/src/lib/public/mathlib.lib
+sp/src/lib/public/raytrace.lib
+sp/src/lib/public/tier1.lib
+sp/src/lib/public/vgui_controls.lib
 
 # Build support files
 sp/src/devtools/gcc9+support.o
-.vs

@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -30,7 +30,21 @@ public:
 
 	CNetworkVar( float, m_flSuitPower );
 	CNetworkVar( bool,	m_bZooming );
+	
+	// VKZ Knowledge (Active Suit Device Bitmask):
+
+	// This is a bitmask representing which suit devices are active.
+	// Operations:
+	// `m_bitsActiveDevices & x` returns 0 if device x is off, non-0 if on
+	// `m_bitsActiveDevices |= x` means turn on device with id `x`
+	// `m_bitsActiveDevices &= ~x` means turn off device with id `x`
+	// `m_bitsActiveDevices ^= ~x` means toggle device with id `x`
+	// Special values:
+	// 0 means all device is off
+	// 1 means all device is on
+	// `m_bitsActiveDevices == x` is true if only device with id `x` is on
 	CNetworkVar( int,	m_bitsActiveDevices );
+
 	CNetworkVar( int,	m_iSquadMemberCount );
 	CNetworkVar( int,	m_iSquadMedicCount );
 	CNetworkVar( bool,	m_fSquadInFollowMode );

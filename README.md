@@ -24,13 +24,17 @@ By design, disabled functionality should behaves the same as original.
 
 ## Functionalities
 
-✅  Fix Quantum Crouch
+✅ [Fix Quantum Crouch](#fix-quantum-crouch)
 
-✅  Infinite Sprint
+✅ [Infinite Sprint](#infinite-sprint)
 
-🚧  Always Run
+🚧 [Always Run](#always-run)
 
-🌱  Adjustable Crouching Speed
+🌱 [Adjustable Crouching Speed](#adjustable-crouching-speed)
+
+✅ [Restorable Suit Power Device](restorable-suit-power-device)
+
+✅ [Invalid Suit Power Device](#invalid-suit-power-device)
 
 ### Fix Quantum Crouch
 
@@ -40,11 +44,16 @@ The same way [VDC article](https://developer.valvesoftware.com/wiki/General_SDK_
 
 Sprint will not drain aux power
 
+#### Direct requirements
+
+- [Restorable Suit Power Device](restorable-suit-power-device)
+- [Invalid Suit Power Device](#invalid-suit-power-device)
+
 #### ConVars
 
 - playground_infinite_sprint (`0 / 1`) - Enable infinite sprint
 
-#### Known Issues
+#### Known issues
 
 - Suppose you enabled both infinite sprint and always run. If you disable infinite sprint, you will keep sprinting, but it doesn't drain aux power. This is because you are still using the old sprint device that doesn't drain aux power, until `StopSprinting` is called. If I can find a way to tracking the changes of `playground_infinite_sprint`, I can probably call `StopSprinting` manually right after it changed. This way it will remove the old device instantly.
 
@@ -64,6 +73,15 @@ Keep sprinting whenever you can. Doesn't affect vehicles.
 
 You still cannot run when grabbing something. But thanks for Mapbase, you can enable `sv_player_enable_propsprint` and `sv_player_enable_gravgun_sprint` for those Functionalities.
 
+### Adjustable Crouching Speed
+
+### Restorable Suit Power Device
+
+Provide `CSuitPowerDeviceDataOps` class for saving & restoring `CSuitPowerDevice` fields
+
+### Invalid Suit Power Device
+
+Provide static member `CSuitPowerDevice::Invalid` that serve as a placeholder. It should not be used in any way.
 
 ---
 
