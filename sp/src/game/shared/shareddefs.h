@@ -222,8 +222,8 @@ constexpr int bits_SUIT_DEVICE_BREATHER =	0x00000004; // 000100
 
 #ifdef MAPBASE
 // Custom suit power devices
-constexpr int bits_SUIT_DEVICE_CUSTOM0 =	0x00000008; //   1000
-constexpr int bits_SUIT_DEVICE_CUSTOM1 =	0x00000010; //  10000
+constexpr int bits_SUIT_DEVICE_CUSTOM0 =	0x00000008; // 001000
+constexpr int bits_SUIT_DEVICE_CUSTOM1 =	0x00000010; // 010000
 constexpr int bits_SUIT_DEVICE_CUSTOM2 =	0x00000020; // 100000
 #endif
 

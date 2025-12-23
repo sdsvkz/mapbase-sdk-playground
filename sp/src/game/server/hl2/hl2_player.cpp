@@ -87,26 +87,6 @@ extern ConVar player_squad_autosummon_enabled;
 
 extern int gEvilImpulse101;
 
-#ifdef VKZ_RESTORABLE_SUIT_POWER_DEVICE
-// Used to serialize CSuitPowerDevice for data description tables
-CSuitPowerDeviceDataOps CSuitPowerDeviceDataOps::_instance;
-#endif
-
-#ifdef VKZ_INFINITE_SPRINT
-// Infinite Sprint ConVar
-static ConVar playground_infinite_sprint(
-	"playground_infinite_sprint",
-	"0",
-	FCVAR_REPLICATED | FCVAR_ARCHIVE,
-	"Enable infinite sprint"
-);
-
-// Returns `true` if infinite sprint is enabled
-static inline bool isInfiniteSprintEnabled() {
-	return playground_infinite_sprint.GetFloat() != 0.0f;
-}
-#endif
-
 #ifdef VKZ_ALWAYS_RUN
 // Always Run ConVar
 // Note that you still cannot sprint when grabbing something
@@ -308,6 +288,10 @@ public:
 	void InputSetPlayerModel( inputdata_t &inputdata );
 	void InputSetPlayerDrawLegs( inputdata_t &inputdata );
 	void InputSetPlayerDrawExternally( inputdata_t &inputdata );
+#endif
+
+#ifdef VKZ_INFINITE_SPRINT
+	void InputSetSprintDrainRate(inputdata_t& inputdata);
 #endif
 
 	void Activate ( void );
@@ -584,9 +568,13 @@ BEGIN_DATADESC( CHL2_Player )
 
 	// Suit power fields
 	DEFINE_FIELD( m_flSuitPowerLoad, FIELD_FLOAT ),
-#ifdef VKZ_INFINITE_SPRINT
+#if defined(VKZ_RESTORABLE_SUIT_POWER_DEVICE) && defined(VKZ_INFINITE_SPRINT)
 	// VKZ Knowledge (Simple custom field for DATADESC table):
 	DEFINE_CUSTOM_FIELD( m_SprintDevice, CSuitPowerDeviceDataOps::Get() ),
+#else
+	#ifndef VKZ_RESTORABLE_SUIT_POWER_DEVICE
+		#error "VKZ_INFINITE_SPRINT requires VKZ_RESTORABLE_SUIT_POWER_DEVICE"
+	#endif
 #endif
 
 	DEFINE_FIELD( m_flIdleTime, FIELD_TIME ),
@@ -683,9 +671,48 @@ BEGIN_ENT_SCRIPTDESC( CHL2_Player, CBasePlayer, "The HL2 player entity." )
 END_SCRIPTDESC();
 #endif
 
+//
+// SUIT POWER DEVICES
+//
+#define SUITPOWER_CHARGE_RATE	12.5											// 100 units in 8 seconds
+
+#ifdef HL2MP
+	// 100 units in 4 seconds
+	constexpr auto DEFAULT_SPRINT_DRAIN_RATE = 25.0f;
+	CSuitPowerDevice SuitDeviceSprint(bits_SUIT_DEVICE_SPRINT, DEFAULT_SPRINT_DRAIN_RATE);
+#else
+	// 100 units in 8 seconds
+	constexpr auto DEFAULT_SPRINT_DRAIN_RATE = 12.5f;
+	#ifndef VKZ_INFINITE_SPRINT
+	CSuitPowerDevice SuitDeviceSprint(bits_SUIT_DEVICE_SPRINT, DEFAULT_SPRINT_DRAIN_RATE);
+	#endif
+
+#endif
+
+#ifdef HL2_EPISODIC
+	CSuitPowerDevice SuitDeviceFlashlight(bits_SUIT_DEVICE_FLASHLIGHT, 1.111);	// 100 units in 90 second
+#else
+	CSuitPowerDevice SuitDeviceFlashlight(bits_SUIT_DEVICE_FLASHLIGHT, 2.222);	// 100 units in 45 second
+#endif
+	CSuitPowerDevice SuitDeviceBreather(bits_SUIT_DEVICE_BREATHER, 6.7f);		// 100 units in 15 seconds (plus three padded seconds)
+
+#ifdef MAPBASE
+	// Default: 100 units in 8 seconds
+	CSuitPowerDevice SuitDeviceCustom[] =
+	{
+		{ bits_SUIT_DEVICE_CUSTOM0, 12.5f },
+		{ bits_SUIT_DEVICE_CUSTOM1, 12.5f },
+		{ bits_SUIT_DEVICE_CUSTOM2, 12.5f },
+	};
+#endif
+
 CHL2_Player::CHL2_Player()
-#ifdef VKZ_INFINITE_SPRINT
-	: m_SprintDevice( CSuitPowerDevice::Invalid )
+#if defined(VKZ_INVALID_SUIT_POWER_DEVICE) && defined(VKZ_INFINITE_SPRINT)
+	: m_SprintDevice( CSuitPowerDevice(bits_SUIT_DEVICE_SPRINT, DEFAULT_SPRINT_DRAIN_RATE) )
+#else
+	#ifndef VKZ_INVALID_SUIT_POWER_DEVICE
+		#error "VKZ_INFINITE_SPRINT requires VKZ_INVALID_SUIT_POWER_DEVICE"
+	#endif
 #endif
 {
 	m_nNumMissPositions	= 0;
@@ -699,57 +726,6 @@ CHL2_Player::CHL2_Player()
 	m_nProtagonistIndex = -1;
 #endif
 }
-
-//
-// SUIT POWER DEVICES
-//
-#define SUITPOWER_CHARGE_RATE	12.5											// 100 units in 8 seconds
-
-#ifdef VKZ_INVALID_SUIT_POWER_DEVICE
-const CSuitPowerDevice CSuitPowerDevice::Invalid;
-#endif
-
-#ifdef HL2MP
-
-// 100 units in 4 seconds
-constexpr auto DEFAULT_SPRINT_DRAIN_RATE = 25.0f;
-
-CSuitPowerDevice SuitDeviceSprint( bits_SUIT_DEVICE_SPRINT, DEFAULT_SPRINT_DRAIN_RATE );
-#else
-
-// 100 units in 8 seconds
-constexpr auto DEFAULT_SPRINT_DRAIN_RATE = 12.5f;
-
-#ifndef VKZ_INFINITE_SPRINT
-CSuitPowerDevice SuitDeviceSprint( bits_SUIT_DEVICE_SPRINT, DEFAULT_SPRINT_DRAIN_RATE );
-#else
-constexpr auto SPRINT_DEVICE_BITS_ID = bits_SUIT_DEVICE_SPRINT;
-
-// Drain aux power as normal
-CSuitPowerDevice SuitDeviceNormalSprint( SPRINT_DEVICE_BITS_ID, DEFAULT_SPRINT_DRAIN_RATE );
-// Don't drain aux power when sprinting
-CSuitPowerDevice SuitDeviceInfiniteSprint( SPRINT_DEVICE_BITS_ID, 0.0f );
-#endif
-
-#endif
-
-#ifdef HL2_EPISODIC
-CSuitPowerDevice SuitDeviceFlashlight( bits_SUIT_DEVICE_FLASHLIGHT, 1.111 );	// 100 units in 90 second
-#else
-CSuitPowerDevice SuitDeviceFlashlight( bits_SUIT_DEVICE_FLASHLIGHT, 2.222 );	// 100 units in 45 second
-#endif
-CSuitPowerDevice SuitDeviceBreather( bits_SUIT_DEVICE_BREATHER, 6.7f );		// 100 units in 15 seconds (plus three padded seconds)
-
-#ifdef MAPBASE
-// Default: 100 units in 8 seconds
-CSuitPowerDevice SuitDeviceCustom[] =
-{
-	{ bits_SUIT_DEVICE_CUSTOM0, 12.5f },
-	{ bits_SUIT_DEVICE_CUSTOM1, 12.5f },
-	{ bits_SUIT_DEVICE_CUSTOM2, 12.5f },
-};
-#endif
-
 
 IMPLEMENT_SERVERCLASS_ST(CHL2_Player, DT_HL2_Player)
 	SendPropDataTable(SENDINFO_DT(m_HL2Local), &REFERENCE_SEND_TABLE(DT_HL2Local), SendProxy_SendLocalDataTable),
@@ -1725,10 +1701,11 @@ void CHL2_Player::StartAutoSprint()
 //-----------------------------------------------------------------------------
 void CHL2_Player::StartSprinting( void )
 {
+	const auto &device = *GetSprintDevice();
 	if (
 #ifdef VKZ_INFINITE_SPRINT
-		// Skip minimal power check if enabled
-		!isInfiniteSprintEnabled() &&
+		// Skip minimal power check if doesn't drain power
+		device.doesDrainPower() &&
 #endif
 		m_HL2Local.m_flSuitPower < 10
 		)
@@ -1750,8 +1727,7 @@ void CHL2_Player::StartSprinting( void )
 	if( !SuitPower_AddDevice( SuitDeviceSprint ) )
 		return;
 #else
-	const auto *device = isInfiniteSprintEnabled() ? &SuitDeviceInfiniteSprint : &SuitDeviceNormalSprint;
-	if ( !SuitPower_AddDevice( *device ) ) {
+	if ( !SuitPower_AddDevice( device ) ) {
 		return;
 	}
 #endif
@@ -1777,7 +1753,7 @@ void CHL2_Player::StartSprinting( void )
 void CHL2_Player::StopSprinting( void )
 {
 #ifdef VKZ_INFINITE_SPRINT
-	if ( m_HL2Local.m_bitsActiveDevices & SPRINT_DEVICE_BITS_ID ) {
+	if ( m_HL2Local.m_bitsActiveDevices & bits_SUIT_DEVICE_SPRINT ) {
 		SuitPower_RemoveDevice( m_SprintDevice );
 	}
 #else
@@ -1820,6 +1796,32 @@ void CHL2_Player::EnableSprint( bool bEnable )
 	m_bSprintEnabled = bEnable;
 }
 
+#ifdef VKZ_INFINITE_SPRINT
+//-----------------------------------------------------------------------------
+// Purpose: Use a sprint device with new drain rate
+//-----------------------------------------------------------------------------
+void CHL2_Player::UseSprintDevice( const CSuitPowerDevice& device ) {
+#ifndef VKZ_INVALID_SUIT_POWER_DEVICE
+	#error "VKZ_INFINITE_SPRINT requires VKZ_INVALID_SUIT_POWER_DEVICE"
+#else
+	if (!device.isValid()) {
+#endif
+		Warning("Trying to set sprint device to invalid device. Ignored\n");
+		return;
+	}
+
+	if (device.GetDeviceID() != bits_SUIT_DEVICE_SPRINT) {
+		Warning("Trying to set sprint device to a device with wrong type, id = %d. Ignored\n",  device.GetDeviceID());
+		return;
+	}
+
+	if (m_SprintDevice.GetDeviceDrainRate() == device.GetDeviceDrainRate()) {
+		return;
+	}
+
+	m_SprintDevice = device;
+}
+#endif
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -2512,8 +2514,8 @@ void CHL2_Player::SuitPower_Update( void )
 	else if (
 		m_HL2Local.m_bitsActiveDevices
 #ifdef VKZ_INFINITE_SPRINT
-		&& (isInfiniteSprintEnabled()
-			// Ignore the case that only sprint is active as it doesn't drain power
+		// Ignore the case that only sprint is active if it doesn't drain power
+		&& (!GetSprintDevice()->doesDrainPower()
 			? m_HL2Local.m_bitsActiveDevices != bits_SUIT_DEVICE_SPRINT
 			: true)
 #endif
@@ -2524,18 +2526,21 @@ void CHL2_Player::SuitPower_Update( void )
 		// You can increase or decrease the drain rate based on other condition
 		float flPowerLoad = m_flSuitPowerLoad;
 
+		// Current sprint device
+		const auto& sprintDevice = *GetSprintDevice();
+
 		// Don't drain power if player is sprinting but not moving
-		// Since stickysprint quickly shuts off sprint if it isn't being used, this isn't an issue.
-		if ( !sv_stickysprint.GetBool() )
+		if (
+#ifdef VKZ_INFINITE_SPRINT
+			// No need to do this if it doesn't drain power
+			sprintDevice.doesDrainPower() &&
+#endif
+			// Since stickysprint quickly shuts off sprint if it isn't being used, this isn't an issue.
+			!sv_stickysprint.GetBool()
+			)
 		{
 #ifdef VKZ_INFINITE_SPRINT
-			// Current sprint device
-			const auto &sprintDevice = m_SprintDevice;
-			if (
-				// Sprint doesn't drain power if enabled, so skip this
-				!isInfiniteSprintEnabled() &&
-				SuitPower_IsDeviceActive(sprintDevice)
-				)
+			if (SuitPower_IsDeviceActive(sprintDevice))
 #else
 			if( SuitPower_IsDeviceActive(SuitDeviceSprint) )
 #endif
@@ -2569,8 +2574,8 @@ void CHL2_Player::SuitPower_Update( void )
 			if(
 				IsSprinting()
 #ifdef VKZ_INFINITE_SPRINT
-				// No need to turn off sprint if enabled since it doesn't drain power
-				&& !isInfiniteSprintEnabled()
+				// No need to turn off sprint if it doesn't drain power
+				&& sprintDevice.doesDrainPower()
 #endif
 				)
 			{
@@ -2622,13 +2627,9 @@ bool CHL2_Player::SuitPower_Drain( float flPower )
 {
 	if (
 		// Suitpower cheat on?
-		sv_infinite_aux_power.GetBool()
-#ifdef VKZ_INFINITE_SPRINT
-		|| (isInfiniteSprintEnabled()
-			// Drain nothing?
-			? flPower == 0.0f
-			: false)
-#endif
+		sv_infinite_aux_power.GetBool() ||
+		// Doesn't change power?
+		flPower == 0.0f
 		)
 	{
 		return true;
@@ -2675,7 +2676,10 @@ bool CHL2_Player::SuitPower_AddDevice( const CSuitPowerDevice &device )
 {
 #ifdef VKZ_INVALID_SUIT_POWER_DEVICE
 	// You are not suppose to add invalid device
-	Assert(device.isValid());
+	if (!device.isValid()) {
+		Warning("Trying to use invalid device. Ignored.\n");
+		return false;
+	}
 #endif
 
 	// Make sure this device is NOT active!!
@@ -2688,9 +2692,6 @@ bool CHL2_Player::SuitPower_AddDevice( const CSuitPowerDevice &device )
 	m_HL2Local.m_bitsActiveDevices |= device.GetDeviceID();
 	m_flSuitPowerLoad += device.GetDeviceDrainRate();
 #ifdef VKZ_INFINITE_SPRINT
-	// TODO (VKZ):
-	// 感觉这样的话，`m_SprintDevice`会在第一次奔跑前都处于非法的状态
-	// 我感觉有问题，跑一下试试，可能会触发Get函数的Assert
 	if (device.GetDeviceID() == bits_SUIT_DEVICE_SPRINT) {
 		// Set sprint device
 		m_SprintDevice = device;
@@ -2709,8 +2710,9 @@ bool CHL2_Player::SuitPower_RemoveDevice( const CSuitPowerDevice &device )
 	// But invalid device is surely not possible to be added
 	// since it `Assert` device is valid.
 	// Just ignore it.
-	if (!device.isValid())
+	if (!device.isValid()) {
 		return false;
+	}
 #endif
 
 	// Make sure this device is active!!
@@ -2746,10 +2748,10 @@ bool CHL2_Player::SuitPower_ShouldRecharge( void )
 {
 	// Make sure all devices are off.
 	if (
-		m_HL2Local.m_bitsActiveDevices != 0x00000000
+		m_HL2Local.m_bitsActiveDevices
 #ifdef VKZ_INFINITE_SPRINT
-		&& (isInfiniteSprintEnabled()
-			// Ignore the case that only sprint is active as it doesn't drain power
+		// Ignore the case that only sprint is active if it doesn't drain power
+		&& (!GetSprintDevice()->doesDrainPower()
 			? m_HL2Local.m_bitsActiveDevices != bits_SUIT_DEVICE_SPRINT
 			: true)
 #endif
@@ -5010,6 +5012,9 @@ BEGIN_DATADESC( CLogicPlayerProxy )
 	DEFINE_INPUT( m_MaxArmor, FIELD_INTEGER, "SetMaxInputArmor" ),
 	DEFINE_INPUT( m_SuitZoomFOV, FIELD_INTEGER, "SetSuitZoomFOV" ),
 #endif
+#ifdef VKZ_INFINITE_SPRINT
+	DEFINE_INPUTFUNC(FIELD_VOID, "SetSprintDrainRate", InputSetSprintDrainRate),
+#endif
 	DEFINE_FIELD( m_hPlayer, FIELD_EHANDLE ),
 END_DATADESC()
 
@@ -5500,5 +5505,23 @@ void CLogicPlayerProxy::InputSetPlayerDrawExternally( inputdata_t &inputdata )
 
 	CBasePlayer *pPlayer = static_cast<CBasePlayer*>(m_hPlayer.Get());
 	pPlayer->SetDrawPlayerModelExternally( inputdata.value.Bool() );
+}
+#endif
+
+#ifdef VKZ_INFINITE_SPRINT
+void CLogicPlayerProxy::InputSetSprintDrainRate(inputdata_t& inputdata) {
+	if (!m_hPlayer)
+		return;
+
+	const auto& fieldtype = inputdata.value.FieldType();
+	// Ensure it's either a float or an integer
+	if (fieldtype != FIELD_FLOAT && fieldtype != FIELD_INTEGER) {
+		Warning("Drain rate can only be numeric value, not type `%s`", FIELDTYPE_NAMES.at(fieldtype));
+		return;
+	}
+	const float drainRate = fieldtype == FIELD_FLOAT ? inputdata.value.Float() : inputdata.value.Int();
+
+	const auto pPlayer = dynamic_cast<CHL2_Player*>(m_hPlayer.Get());
+	pPlayer->UseSprintDevice(CSuitPowerDevice(bits_SUIT_DEVICE_SPRINT, drainRate));
 }
 #endif

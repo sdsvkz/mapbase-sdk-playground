@@ -26,7 +26,7 @@ $Conditional NEW_RESPONSE_SYSTEM	"1" // Toggles the new Response System library 
 //-----------------------------------------------------------------------------
 
 // VKZ additional functionality conditionals
-$Conditional VKZ_DEV					"0" // Additional debugging codes
+$Conditional VKZ_DEV					"1" // Additional debugging codes
 $Conditional VKZ_INFINITE_SPRINT		"1" // Infinite Sprint
 $Conditional VKZ_ALWAYS_RUN				"1" // Always Run
 $Conditional VKZ_FIX_QUANTUM_CROUCH		"1" // Fix Quantum Crouch

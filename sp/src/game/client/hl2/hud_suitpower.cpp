@@ -24,21 +24,6 @@ DECLARE_HUDELEMENT( CHudSuitPower );
 
 #define SUITPOWER_INIT -1
 
-#ifdef VKZ_INFINITE_SPRINT
-// Infinite Sprint ConVar
-static ConVar playground_infinite_sprint(
-	"playground_infinite_sprint",
-	"0",
-	FCVAR_REPLICATED | FCVAR_ARCHIVE,
-	"Enable infinite sprint"
-);
-
-// Returns `true` if infinite sprint is enabled
-static inline bool isInfiniteSprintEnabled() {
-	return playground_infinite_sprint.GetFloat() != 0.0f;
-}
-#endif
-
 //-----------------------------------------------------------------------------
 // Purpose: Constructor
 //-----------------------------------------------------------------------------
@@ -127,10 +112,11 @@ void CHudSuitPower::OnThink( void )
 	int activeDevices = (int)flashlightActive + (int)sprintActive + (int)breatherActive;
 #else
 	int activeDevices = (int)flashlightActive + (int)breatherActive;
-	// Not gonna draw sprint state if enabled
-	if ( !isInfiniteSprintEnabled() ) {
+	// Not gonna draw sprint state if it doesn't drain power
+	// VKZ TODO:
+	// if ( !isInfiniteSprintEnabled() ) {
 		activeDevices += (int)sprintActive;
-	}
+	// }
 #endif
 
 #ifdef MAPBASE
@@ -281,8 +267,9 @@ void CHudSuitPower::Paint()
 		}
 
 #ifdef VKZ_INFINITE_SPRINT
-		// No need to paint indicator if enabled since it doesn't drain aux power
-		if ( !isInfiniteSprintEnabled() )
+		// No need to paint indicator if it doesn't drain power
+		// if ( !isInfiniteSprintEnabled() )
+		// VKZ TODO:
 #endif
 		{
 #ifdef MAPBASE

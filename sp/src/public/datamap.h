@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -10,6 +10,8 @@
 #ifdef _WIN32
 #pragma once
 #endif
+
+#include <map>
 
 #ifndef VECTOR_H
 #include "mathlib/vector.h"
@@ -68,6 +70,37 @@ typedef enum _fieldtypes
 	FIELD_TYPECOUNT,		// MUST BE LAST
 } fieldtype_t;
 
+
+const std::map<fieldtype_t, const char *> FIELDTYPE_NAMES {
+	{ FIELD_VOID, "Void" },
+	{ FIELD_FLOAT, "Float" },
+	{ FIELD_STRING, "String" },
+	{ FIELD_VECTOR, "Vector" },
+	{ FIELD_QUATERNION, "Quaternion" },
+	{ FIELD_INTEGER, "Integer" },
+	{ FIELD_SHORT, "Short" },
+	{ FIELD_CHARACTER, "Char" },
+	{ FIELD_COLOR32, "Color32" },
+	{ FIELD_EMBEDDED, "Embedded"},
+	{ FIELD_CUSTOM, "Custom"},
+	{ FIELD_CLASSPTR, "Class pointer"},
+	{ FIELD_EHANDLE, "EHandle"},
+	{ FIELD_EDICT, "Edict"},
+	{ FIELD_POSITION_VECTOR, "Position vector"},
+	{ FIELD_TIME, "Time"},
+	{ FIELD_TICK, "Tick"},
+	{ FIELD_MODELNAME, "Model name"},
+	{ FIELD_SOUNDNAME, "Sound name"},
+	{ FIELD_INPUT, "Input"},
+	{ FIELD_FUNCTION, "Function"},
+	{ FIELD_VMATRIX, "VMatrix"},
+	{ FIELD_MATRIX3X4_WORLDSPACE, "Matrix3X4 worldspace"},
+	{ FIELD_INTERVAL, "Interval"},
+	{ FIELD_MODELINDEX, "Model index"},
+	{ FIELD_MATERIALINDEX, "Material index"},
+	{ FIELD_VECTOR2D, "Vector 2D"},
+	{ FIELD_TYPECOUNT, "Type count"},
+};
 
 //-----------------------------------------------------------------------------
 // Field sizes... 
