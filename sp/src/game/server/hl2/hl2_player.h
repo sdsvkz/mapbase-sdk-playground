@@ -196,6 +196,10 @@ public:
 
 	// Sprint Device
 	void StartAutoSprint( void );
+#ifdef VKZ_ALWAYS_RUN
+	// Start sprinting for always run
+	void startRunning(void);
+#endif
 	void StartSprinting( void );
 	void StopSprinting( void );
 	void InitSprinting( void );
@@ -203,10 +207,10 @@ public:
 	bool CanSprint( void );
 	void EnableSprint( bool bEnable);
 #ifdef VKZ_INFINITE_SPRINT
-	void UseSprintDevice(const CSuitPowerDevice& device);
-	const CSuitPowerDevice* GetSprintDevice() const {
+	void useSprintDevice(const CSprintDevice& device);
+	const CSprintDevice* getSprintDevice() const {
 #ifndef VKZ_INVALID_SUIT_POWER_DEVICE
-	#error "VKZ_INFINITE_SPRINT requires VKZ_INVALID_SUIT_POWER_DEVICE"
+	// #error "VKZ_INFINITE_SPRINT requires VKZ_INVALID_SUIT_POWER_DEVICE"
 #else
 		Assert(m_SprintDevice.isValid());
 #endif
@@ -384,11 +388,14 @@ private:
 	float				m_flTimeAllSuitDevicesOff;
 
 #ifdef VKZ_INFINITE_SPRINT
-	CSuitPowerDevice		m_SprintDevice;			// The sprint device player should use
+	CSprintDevice			m_SprintDevice;			// The sprint device player should use
 #endif
 	bool					m_bSprintEnabled;		// Used to disable sprint temporarily
 	bool					m_bIsAutoSprinting;		// A proxy for holding down the sprint key.
 	float					m_fAutoSprintMinTime;	// Minimum time to maintain autosprint regardless of player speed. 
+#ifdef VKZ_ALWAYS_RUN
+	bool					m_bIsRunning;		// A proxy for holding down the sprint key (For always run)
+#endif
 
 	CNetworkVar( bool, m_fIsSprinting );
 	CNetworkVarForDerived( bool, m_fIsWalking );

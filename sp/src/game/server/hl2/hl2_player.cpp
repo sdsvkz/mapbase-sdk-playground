@@ -87,6 +87,11 @@ extern ConVar player_squad_autosummon_enabled;
 
 extern int gEvilImpulse101;
 
+void AlwaysRunChangeCallback(IConVar* var, const char* pOldValue, float flOldValue) {
+	CHL2_Player* player = dynamic_cast<CHL2_Player*>(UTIL_GetLocalPlayer());
+	player->StopSprinting();
+}
+
 #ifdef VKZ_ALWAYS_RUN
 // Always Run ConVar
 // Note that you still cannot sprint when grabbing something
@@ -112,14 +117,16 @@ ConVar hl2_sprintspeed( "hl2_sprintspeed", "320" );
 
 ConVar hl2_darkness_flashlight_factor ( "hl2_darkness_flashlight_factor", "1" );
 
-#ifdef HL2MP
-	#define	HL2_WALK_SPEED 150
-	#define	HL2_NORM_SPEED 190
-	#define	HL2_SPRINT_SPEED 320
-#else
-	#define	HL2_WALK_SPEED hl2_walkspeed.GetFloat()
-	#define	HL2_NORM_SPEED hl2_normspeed.GetFloat()
-	#define	HL2_SPRINT_SPEED hl2_sprintspeed.GetFloat()
+#ifndef VKZ_INFINITE_SPRINT
+	#ifdef HL2MP
+		#define	HL2_WALK_SPEED 150
+		#define	HL2_NORM_SPEED 190
+		#define	HL2_SPRINT_SPEED 320
+	#else
+		#define	HL2_WALK_SPEED hl2_walkspeed.GetFloat()
+		#define	HL2_NORM_SPEED hl2_normspeed.GetFloat()
+		#define	HL2_SPRINT_SPEED hl2_sprintspeed.GetFloat()
+	#endif
 #endif
 
 ConVar player_showpredictedposition( "player_showpredictedposition", "0" );
@@ -292,6 +299,7 @@ public:
 
 #ifdef VKZ_INFINITE_SPRINT
 	void InputSetSprintDrainRate(inputdata_t& inputdata);
+	void InputSetSprintSpeed(inputdata_t& inputdata);
 #endif
 
 	void Activate ( void );
@@ -568,12 +576,15 @@ BEGIN_DATADESC( CHL2_Player )
 
 	// Suit power fields
 	DEFINE_FIELD( m_flSuitPowerLoad, FIELD_FLOAT ),
-#if defined(VKZ_RESTORABLE_SUIT_POWER_DEVICE) && defined(VKZ_INFINITE_SPRINT)
+#if defined(VKZ_RESTORABLE_SUIT_POWER_DEVICE) && defined(VKZ_ADVANCED_SUIT_POWER_DEVICE) && defined(VKZ_INFINITE_SPRINT)
 	// VKZ Knowledge (Simple custom field for DATADESC table):
-	DEFINE_CUSTOM_FIELD( m_SprintDevice, CSuitPowerDeviceDataOps::Get() ),
+	DEFINE_CUSTOM_FIELD(m_SprintDevice, CSuitPowerDeviceDataOps<CSprintDevice>::Get()),
 #else
 	#ifndef VKZ_RESTORABLE_SUIT_POWER_DEVICE
 		#error "VKZ_INFINITE_SPRINT requires VKZ_RESTORABLE_SUIT_POWER_DEVICE"
+	#endif
+	#ifndef VKZ_ADVANCED_SUIT_POWER_DEVICE
+		#error "VKZ_INFINITE_SPRINT requires VKZ_ADVANCED_SUIT_POWER_DEVICE"
 	#endif
 #endif
 
@@ -810,6 +821,21 @@ void CHL2_Player::HandleSpeedChanges( void )
 		// We want a full debounce of the key to resume sprinting after the suit is completely drained
 		if ( bWantSprint )
 		{
+#ifdef VKZ_ALWAYS_RUN
+			if (!sv_stickysprint.GetBool() && !isAlwaysRunEnabled())
+			{
+				StartSprinting();
+			}
+			else {
+				if (isAlwaysRunEnabled()) {
+					startRunning();
+				}
+				if (sv_stickysprint.GetBool())
+				{
+					StartAutoSprint();
+				}
+			}
+#else
 			if ( sv_stickysprint.GetBool() )
 			{
 				StartAutoSprint();
@@ -818,6 +844,7 @@ void CHL2_Player::HandleSpeedChanges( void )
 			{
 				StartSprinting();
 			}
+#endif
 		}
 		else
 		{
@@ -1000,6 +1027,13 @@ void CHL2_Player::PreThink(void)
 		{
 			StopSprinting();
 		}
+#ifdef VKZ_ALWAYS_RUN
+		else if (!isAlwaysRunEnabled() && m_bIsRunning)
+		{
+			StopSprinting();
+			m_bIsRunning = false;
+		}
+#endif
 	}
 #ifdef VKZ_ALWAYS_RUN
 	// Means to start sprinting when always run is enabled, not already sprinting and can sprint
@@ -1011,8 +1045,9 @@ void CHL2_Player::PreThink(void)
 	// `!m_Local.m_bDucking` ensures player is not in that ducking process.
 	else if ( isAlwaysRunEnabled() && CanSprint() && !m_Local.m_bDucking)
 	{
-		StartSprinting();
+		startRunning();
 	}
+
 #endif
 
 	VPROF_SCOPE_END();
@@ -1697,11 +1732,21 @@ void CHL2_Player::StartAutoSprint()
 	}
 }
 
+#ifdef VKZ_ALWAYS_RUN
+//-----------------------------------------------------------------------------
+// Purpose: Start sprinting for always run
+//-----------------------------------------------------------------------------
+void CHL2_Player::startRunning() {
+	StartSprinting();
+	m_bIsRunning = true;
+}
+#endif
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 void CHL2_Player::StartSprinting( void )
 {
-	const auto &device = *GetSprintDevice();
+	const auto &device = *getSprintDevice();
 	if (
 #ifdef VKZ_INFINITE_SPRINT
 		// Skip minimal power check if doesn't drain power
@@ -1743,7 +1788,11 @@ void CHL2_Player::StartSprinting( void )
 		EmitSound(filter, entindex(), "HL2Player.SprintStart");
 	}
 
+#ifndef VKZ_INFINITE_SPRINT
 	SetMaxSpeed( HL2_SPRINT_SPEED );
+#else
+	SetMaxSpeed(getSprintDevice()->getSprintSpeed());
+#endif
 	m_fIsSprinting = true;
 }
 
@@ -1765,11 +1814,19 @@ void CHL2_Player::StopSprinting( void )
 
 	if( IsSuitEquipped() )
 	{
-		SetMaxSpeed( HL2_NORM_SPEED );
+#ifndef VKZ_INFINITE_SPRINT
+		SetMaxSpeed(HL2_SPRINT_SPEED);
+#else
+		SetMaxSpeed(getSprintDevice()->getSprintSpeed());
+#endif
 	}
 	else
 	{
-		SetMaxSpeed( HL2_WALK_SPEED );
+#ifndef VKZ_INFINITE_SPRINT
+		SetMaxSpeed(HL2_SPRINT_SPEED);
+#else
+		SetMaxSpeed(getSprintDevice()->getSprintSpeed());
+#endif
 	}
 
 	m_fIsSprinting = false;
@@ -1800,7 +1857,7 @@ void CHL2_Player::EnableSprint( bool bEnable )
 //-----------------------------------------------------------------------------
 // Purpose: Use a sprint device with new drain rate
 //-----------------------------------------------------------------------------
-void CHL2_Player::UseSprintDevice( const CSuitPowerDevice& device ) {
+void CHL2_Player::useSprintDevice( const CSprintDevice& device ) {
 #ifndef VKZ_INVALID_SUIT_POWER_DEVICE
 	#error "VKZ_INFINITE_SPRINT requires VKZ_INVALID_SUIT_POWER_DEVICE"
 #else
@@ -1827,7 +1884,11 @@ void CHL2_Player::UseSprintDevice( const CSuitPowerDevice& device ) {
 //-----------------------------------------------------------------------------
 void CHL2_Player::StartWalking( void )
 {
-	SetMaxSpeed( HL2_WALK_SPEED );
+#ifndef VKZ_INFINITE_SPRINT
+	SetMaxSpeed(HL2_SPRINT_SPEED);
+#else
+	SetMaxSpeed(getSprintDevice()->getSprintSpeed());
+#endif
 	m_fIsWalking = true;
 }
 
@@ -1835,7 +1896,11 @@ void CHL2_Player::StartWalking( void )
 //-----------------------------------------------------------------------------
 void CHL2_Player::StopWalking( void )
 {
-	SetMaxSpeed( HL2_NORM_SPEED );
+#ifndef VKZ_INFINITE_SPRINT
+	SetMaxSpeed(HL2_SPRINT_SPEED);
+#else
+	SetMaxSpeed(getSprintDevice()->getSprintSpeed());
+#endif
 	m_fIsWalking = false;
 }
 
@@ -2515,7 +2580,7 @@ void CHL2_Player::SuitPower_Update( void )
 		m_HL2Local.m_bitsActiveDevices
 #ifdef VKZ_INFINITE_SPRINT
 		// Ignore the case that only sprint is active if it doesn't drain power
-		&& (!GetSprintDevice()->doesDrainPower()
+		&& (!getSprintDevice()->doesDrainPower()
 			? m_HL2Local.m_bitsActiveDevices != bits_SUIT_DEVICE_SPRINT
 			: true)
 #endif
@@ -2527,7 +2592,7 @@ void CHL2_Player::SuitPower_Update( void )
 		float flPowerLoad = m_flSuitPowerLoad;
 
 		// Current sprint device
-		const auto& sprintDevice = *GetSprintDevice();
+		const auto& sprintDevice = *getSprintDevice();
 
 		// Don't drain power if player is sprinting but not moving
 		if (
@@ -2751,7 +2816,7 @@ bool CHL2_Player::SuitPower_ShouldRecharge( void )
 		m_HL2Local.m_bitsActiveDevices
 #ifdef VKZ_INFINITE_SPRINT
 		// Ignore the case that only sprint is active if it doesn't drain power
-		&& (!GetSprintDevice()->doesDrainPower()
+		&& (!getSprintDevice()->doesDrainPower()
 			? m_HL2Local.m_bitsActiveDevices != bits_SUIT_DEVICE_SPRINT
 			: true)
 #endif
@@ -5013,7 +5078,8 @@ BEGIN_DATADESC( CLogicPlayerProxy )
 	DEFINE_INPUT( m_SuitZoomFOV, FIELD_INTEGER, "SetSuitZoomFOV" ),
 #endif
 #ifdef VKZ_INFINITE_SPRINT
-	DEFINE_INPUTFUNC(FIELD_VOID, "SetSprintDrainRate", InputSetSprintDrainRate),
+	DEFINE_INPUTFUNC(FIELD_FLOAT, "SetSprintDrainRate", InputSetSprintDrainRate),
+	DEFINE_INPUTFUNC(FIELD_FLOAT, "SetSprintSpeed", InputSetSprintSpeed),
 #endif
 	DEFINE_FIELD( m_hPlayer, FIELD_EHANDLE ),
 END_DATADESC()
@@ -5513,15 +5579,22 @@ void CLogicPlayerProxy::InputSetSprintDrainRate(inputdata_t& inputdata) {
 	if (!m_hPlayer)
 		return;
 
-	const auto& fieldtype = inputdata.value.FieldType();
-	// Ensure it's either a float or an integer
-	if (fieldtype != FIELD_FLOAT && fieldtype != FIELD_INTEGER) {
-		Warning("Drain rate can only be numeric value, not type `%s`", FIELDTYPE_NAMES.at(fieldtype));
+	const auto pPlayer = dynamic_cast<CHL2_Player*>(m_hPlayer.Get());
+	pPlayer->useSprintDevice(CSprintDevice(
+		bits_SUIT_DEVICE_SPRINT, inputdata.value.Float(),
+		pPlayer->getSprintDevice()->getSprintSpeed()
+	));
+}
+
+void CLogicPlayerProxy::InputSetSprintSpeed(inputdata_t& inputdata) {
+	if (!m_hPlayer)
 		return;
-	}
-	const float drainRate = fieldtype == FIELD_FLOAT ? inputdata.value.Float() : inputdata.value.Int();
 
 	const auto pPlayer = dynamic_cast<CHL2_Player*>(m_hPlayer.Get());
-	pPlayer->UseSprintDevice(CSuitPowerDevice(bits_SUIT_DEVICE_SPRINT, drainRate));
+	pPlayer->useSprintDevice(CSprintDevice(
+		bits_SUIT_DEVICE_SPRINT,
+		pPlayer->getSprintDevice()->getRawDrainRate(),
+		inputdata.value.Float()
+	));
 }
 #endif

@@ -114,7 +114,7 @@ void CHudSuitPower::OnThink( void )
 	int activeDevices = (int)flashlightActive + (int)breatherActive;
 	// Not gonna draw sprint state if it doesn't drain power
 	// VKZ TODO:
-	// if ( !isInfiniteSprintEnabled() ) {
+	// if ( pPlayer ) {
 		activeDevices += (int)sprintActive;
 	// }
 #endif

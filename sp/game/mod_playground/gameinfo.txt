@@ -9,6 +9,8 @@
 
 	mapbase_core 1
 
+	GameData	"bin/halflife2.fgd"
+
 	FileSystem
 	{
 		SteamAppId				243730		// This sets the app ID in Steam
