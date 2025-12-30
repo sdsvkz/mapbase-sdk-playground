@@ -98,6 +98,7 @@ sp/src/utils/*.pdb
 sp/src/utils/*.exe
 sp/src/utils/*.res
 sp/src/utils/*/Debug/
+sp/src/utils/*/Release/
 sp/src/materialsystem/*.dll
 sp/src/materialsystem/*.pdb
 sp/src/vgui2/*.dll
