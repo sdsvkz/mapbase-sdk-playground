@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: Client side implementation of the airboat.
 //
@@ -169,7 +169,7 @@ C_PropAirboat::C_PropAirboat()
 {
 	m_vecEyeSpeed.Init();
 	m_flViewAngleDeltaTime = 0.0f;
-	m_pHeadlight = NULL;
+	m_pHeadlight = nullptr;
 
 	m_ViewSmoothingData.flPitchCurveZero = r_AirboatPitchCurveZero.GetFloat();
 	m_ViewSmoothingData.flPitchCurveLinear = r_AirboatPitchCurveLinear.GetFloat();
@@ -244,7 +244,7 @@ void C_PropAirboat::DrawHudElements( )
 	MDLCACHE_CRITICAL_SECTION();
 
 	CHudTexture *pIcon = gHUD.GetIcon( IsX360() ? "crosshair_default" : "plushair" );
-	if ( pIcon != NULL )
+	if ( pIcon != nullptr )
 	{
 		float x, y;
 		Vector screen;
@@ -297,7 +297,7 @@ void C_PropAirboat::UpdateViewAngles( C_BasePlayer *pLocalPlayer, CUserCmd *pCmd
 			if ( IsX360() )
 			{
 				// Only reset this if there isn't an autoaim target!
-				C_BaseHLPlayer *pLocalHLPlayer = (C_BaseHLPlayer *)pLocalPlayer;
+				C_BaseHLPlayer *pLocalHLPlayer = dynamic_cast<C_BaseHLPlayer*>(pLocalPlayer);
 				if ( pLocalHLPlayer )
 				{
 					// Get the autoaim target.
@@ -465,7 +465,7 @@ void C_PropAirboat::DampenUpMotion( Vector &vecVehicleEyePos, QAngle &vecVehicle
 {
 	// Get up vector.
 	Vector vecUp;
-	AngleVectors( vecVehicleEyeAngles, NULL, NULL, &vecUp );
+	AngleVectors( vecVehicleEyeAngles, nullptr, nullptr, &vecUp );
 	vecUp.z = clamp( vecUp.z, 0.0f, vecUp.z );
 	vecVehicleEyePos.z += r_AirboatViewZHeight.GetFloat() * vecUp.z;
 
@@ -537,7 +537,7 @@ void C_PropAirboat::UpdateHeadlight()
 	{
 		// Turned off the headlight; delete it.
 		delete m_pHeadlight;
-		m_pHeadlight = NULL;
+		m_pHeadlight = nullptr;
 	}
 }
 
@@ -556,8 +556,8 @@ void C_PropAirboat::UpdateWake( void )
 	Vector	screenPos = GetRenderOrigin();
 	screenPos.z = m_nExactWaterLevel;
 
-	TrailPoint_t *pLast = m_nStepCount ? GetTrailPoint( m_nStepCount-1 ) : NULL;
-	if ( ( pLast == NULL ) || ( pLast->m_vecScreenPos.DistToSqr( screenPos ) > 4.0f ) )
+	TrailPoint_t *pLast = m_nStepCount ? GetTrailPoint( m_nStepCount-1 ) : nullptr;
+	if ( ( pLast == nullptr ) || ( pLast->m_vecScreenPos.DistToSqr( screenPos ) > 4.0f ) )
 	{
 		// If we're over our limit, steal the last point and put it up front
 		if ( m_nStepCount >= MAX_WAKE_POINTS )
@@ -651,9 +651,9 @@ void C_PropAirboat::DrawPontoonSplash( Vector origin, Vector direction, float sp
 		offset[2] = 0.0f;
 		offset += origin;
 
-		pParticle = (SimpleParticle *) pSimple->AddParticle( sizeof( SimpleParticle ), hMaterial, offset );
+		pParticle = dynamic_cast<SimpleParticle*>(pSimple->AddParticle(sizeof(SimpleParticle), hMaterial, offset));
 
-		if ( pParticle == NULL )
+		if ( pParticle == nullptr )
 			continue;
 		
 		pParticle->m_flLifetime = 0.0f;
@@ -697,9 +697,9 @@ void C_PropAirboat::DrawPontoonWake( Vector	startPos, Vector wakeDir, float wake
 	Vector	origin;
 	float	scale;
 
-	IMaterial *pMaterial = materials->FindMaterial( "effects/splashwake1", NULL, false );
+	IMaterial *pMaterial = materials->FindMaterial( "effects/splashwake1", nullptr, false );
 	CMatRenderContextPtr pRenderContext( materials );
-	IMesh* pMesh = pRenderContext->GetDynamicMesh( 0, 0, 0, pMaterial );
+	IMesh* pMesh = pRenderContext->GetDynamicMesh( false, nullptr, nullptr, pMaterial );
 
 	CMeshBuilder meshBuilder;
 	meshBuilder.Begin( pMesh, MATERIAL_QUADS, WAKE_STEPS );
@@ -774,7 +774,7 @@ int C_PropAirboat::DrawWake( void )
 	if ( GetWaterLevel() == 2 )
 		return 0;
 
-	bool bDriven = ( GetPassenger( VEHICLE_ROLE_DRIVER ) != NULL );
+	bool bDriven = ( GetPassenger( VEHICLE_ROLE_DRIVER ) != nullptr );
 
 	Vector vehicleDir = m_vecPhysVelocity;
 	float vehicleSpeed = VectorNormalize( vehicleDir );
@@ -813,7 +813,7 @@ int C_PropAirboat::DrawWake( void )
 
 		Vector vecSplashDir;
 		Vector vForward;
-		GetVectors( &vForward, NULL, NULL );
+		GetVectors( &vForward, nullptr, nullptr );
 
 		if ( m_vecPhysVelocity.x < -64.0f )
 		{
@@ -843,11 +843,11 @@ int C_PropAirboat::DrawWake( void )
 	if ( m_nStepCount <= 1 )
 		return 1;
 
-	IMaterial *pMaterial = materials->FindMaterial( "effects/splashwake4", 0);
+	IMaterial *pMaterial = materials->FindMaterial( "effects/splashwake4", nullptr);
 		
 	//Bind the material
 	CMatRenderContextPtr pRenderContext( materials );
-	IMesh *pMesh = pRenderContext->GetDynamicMesh( true, NULL, NULL, pMaterial );
+	IMesh *pMesh = pRenderContext->GetDynamicMesh( true, nullptr, nullptr, pMaterial );
 	
 	m_Mesh.Begin( pMesh, MATERIAL_TRIANGLE_STRIP, (m_nStepCount-1) * 2 );
 
@@ -861,7 +861,7 @@ int C_PropAirboat::DrawWake( void )
 	currentPoint.m_flTexCoord = fmod( currentPoint.m_flTexCoord, 1 );
 	currentPoint.m_flWidthVariance = 0.0f;
 
-	TrailPoint_t *pPrevPoint = NULL;
+	TrailPoint_t *pPrevPoint = nullptr;
 	
 	Vector segDir, normal;
 
@@ -870,7 +870,7 @@ int C_PropAirboat::DrawWake( void )
 		// This makes it so that we're always drawing to the current location
 		TrailPoint_t *pPoint = (i != m_nStepCount) ? GetTrailPoint(i) : &currentPoint;
 
-		float flLifePerc = RemapValClamped( ( pPoint->m_flDieTime - gpGlobals->curtime ), 0, WAKE_LIFETIME, 0.0f, 1.0f );
+		float flLifePerc = RemapValClamped( ( pPoint->m_flDieTime - gpGlobals->curtime ), 0.0f, WAKE_LIFETIME, 0.0f, 1.0f );
 
 		BeamSeg_t curSeg;
 		curSeg.m_vColor.x = curSeg.m_vColor.y = curSeg.m_vColor.z = 1.0f;
@@ -895,7 +895,7 @@ int C_PropAirboat::DrawWake( void )
 
 		curSeg.m_flTexCoord = pPoint->m_flTexCoord;
 
-		if ( pPrevPoint != NULL )
+		if ( pPrevPoint != nullptr )
 		{
 			segDir = ( pPrevPoint->m_vecScreenPos - pPoint->m_vecScreenPos );
 			VectorNormalize( segDir );

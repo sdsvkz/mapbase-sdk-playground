@@ -197,8 +197,12 @@ public:
 	// Sprint Device
 	void StartAutoSprint( void );
 #ifdef VKZ_ALWAYS_RUN
-	// Start sprinting for always run
-	void startRunning(void);
+	// Is always running?
+	bool isRunning() const { return m_bIsRunning; }
+	// Start always running
+	void startRunning();
+	// Stop always running
+	void stopRunning();
 #endif
 	void StartSprinting( void );
 	void StopSprinting( void );
@@ -206,18 +210,20 @@ public:
 	bool IsSprinting( void ) { return m_fIsSprinting; }
 	bool CanSprint( void );
 	void EnableSprint( bool bEnable);
-#ifdef VKZ_INFINITE_SPRINT
+#ifdef VKZ_ADVANCED_SPRINT
 	void useSprintDevice(const CSprintDevice& device);
 	const CSprintDevice* getSprintDevice() const {
-#ifndef VKZ_INVALID_SUIT_POWER_DEVICE
-	// #error "VKZ_INFINITE_SPRINT requires VKZ_INVALID_SUIT_POWER_DEVICE"
-#else
 		Assert(m_SprintDevice.isValid());
-#endif
 		return &m_SprintDevice;
 	}
 #endif
 
+	bool isMovingHorizontally() const {
+		const auto& velocity = GetAbsVelocity();
+		return fabs(velocity.x) || fabs(velocity.y);
+	}
+
+	// Zoom
 	bool CanZoom( CBaseEntity *pRequester );
 	void ToggleZoom(void);
 	void StartZooming( void );
@@ -234,7 +240,7 @@ public:
 	virtual float		GetIdleTime( void ) const { return ( m_flIdleTime - m_flMoveTime ); }
 	virtual float		GetMoveTime( void ) const { return ( m_flMoveTime - m_flIdleTime ); }
 	virtual float		GetLastDamageTime( void ) const { return m_flLastDamageTime; }
-	virtual bool		IsDucking( void ) const { return !!( GetFlags() & FL_DUCKING ); }
+	virtual bool		IsDucking(void) const { return !!(GetFlags() & FL_DUCKING); }
 
 	virtual bool		PassesDamageFilter( const CTakeDamageInfo &info );
 	void				InputIgnoreFallDamage( inputdata_t &inputdata );
@@ -387,14 +393,19 @@ private:
 
 	float				m_flTimeAllSuitDevicesOff;
 
-#ifdef VKZ_INFINITE_SPRINT
-	CSprintDevice			m_SprintDevice;			// The sprint device player should use
-#endif
 	bool					m_bSprintEnabled;		// Used to disable sprint temporarily
 	bool					m_bIsAutoSprinting;		// A proxy for holding down the sprint key.
 	float					m_fAutoSprintMinTime;	// Minimum time to maintain autosprint regardless of player speed. 
 #ifdef VKZ_ALWAYS_RUN
 	bool					m_bIsRunning;		// A proxy for holding down the sprint key (For always run)
+#endif
+
+#ifdef VKZ_ADVANCED_SPRINT
+
+#ifndef VKZ_NETWORKABLE_SUIT_POWER_DEVICE
+	#error "VKZ_ADVANCED_SPRINT requires VKZ_NETWORKABLE_SUIT_POWER_DEVICE"
+#endif
+	CNetworkVarEmbedded(CSprintDevice, m_SprintDevice);			// The sprint device player should use
 #endif
 
 	CNetworkVar( bool, m_fIsSprinting );

@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -287,17 +287,17 @@ public:
 		return Set( m_Value & ( const Type )val ); 
 	}
 
-	operator const Type&() const 
+	constexpr operator const Type&() const noexcept
 	{
 		return m_Value; 
 	}
 	
-	const Type& Get() const 
+	constexpr const Type& Get() const noexcept
 	{
 		return m_Value; 
 	}
 	
-	const Type* operator->() const 
+	constexpr const Type* operator->() const noexcept
 	{
 		return &m_Value; 
 	}

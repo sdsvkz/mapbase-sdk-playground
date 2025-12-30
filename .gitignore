@@ -97,6 +97,7 @@ sp/src/utils/*.dll
 sp/src/utils/*.pdb
 sp/src/utils/*.exe
 sp/src/utils/*.res
+sp/src/utils/*/Debug/
 sp/src/materialsystem/*.dll
 sp/src/materialsystem/*.pdb
 sp/src/vgui2/*.dll

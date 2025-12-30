@@ -10,60 +10,76 @@ And currently, I only develop on Windows (x86). There is no guarantee whether it
 
 - Visual Studio 2022 (with MSVC v143) / 2026 (with MSVC v145)
 - Latest Windows SDK
+- Set C++ Standard to C++ 20
+- (Optional) Enable C++ Exceptions (/EHsc)
 
 ## Capabilities
 
 - Compiles under C++ 20 (Tested on MSVC v145)
-- All Functionalities can be turned on / off
+- All code snippets can be turned on / off
 
 ### Preprocessor Directives
 
-Each functionality has a macro to control whether to enable it. You can find the definitions and VPC flags in `vpc_script/source_base.vpc`.
+Each snippet has a macro to control whether to enable it. You can find the definitions and VPC flags in `vpc_script/source_base.vpc`.
 
-By design, disabled functionality should behaves the same as original.
+## Snippets (Functionalities)
 
-## Functionalities
+- ✅ = Done
+- 🚧 = WIP
+- 🌱 = Planned
 
 ✅ [Fix Quantum Crouch](#fix-quantum-crouch)
 
-✅ [Infinite Sprint](#infinite-sprint)
+✅ [Advanced Sprint](#advanced-sprint)
 
 🚧 [Always Run](#always-run)
 
 🌱 [Adjustable Crouching Speed](#adjustable-crouching-speed)
 
-✅ [Restorable Suit Power Device](restorable-suit-power-device)
-
-✅ [Invalid Suit Power Device](#invalid-suit-power-device)
-
 ### Fix Quantum Crouch
 
 The same way [VDC article](https://developer.valvesoftware.com/wiki/General_SDK_Snippets_%26_Fixes#Schrodinger's/Quantum_crouch_fix) suggest
 
-### Infinite Sprint
+### Advanced Sprint
 
-Sprint will not drain aux power
+Provided inputs to dynamically adjust drain rate and speed for sprinting.
+
+#### Inputs
+
+##### `logic_playerproxy`
+
+- `SetSprintDrainRate(float drainRate)` - Set the drain rate of sprintng for this player, default for singleplayer is 12.5%/s.
+- `SetSprintSpeed(float speed)` - Set how fast this player runs (Unit/s), default is 320 Unit/s.
+
+#### Removed `hl2_sprintspeed`
+
+Instead, you can create a `logic_playerproxy` with `ent_create` and fire `SetSprintSpeed` with `ent_fire`.
 
 #### Direct requirements
 
-- [Restorable Suit Power Device](restorable-suit-power-device)
-- [Invalid Suit Power Device](#invalid-suit-power-device)
+##### [Restorable Suit Power Device](#restorable-suit-power-device) or [DATADESC Suit Power Device](#datadesc-suit-power-device)
 
-#### ConVars
+Used for saving & restoring sprint device data.
+If both are enabled, `Restorable Suit Power Device` (`DEFINE_CUSTOM_FIELD`) is preferred.
+Or you can enable `VKZ_EMBEDDED_SPRINT_DEVICE_FIELD` to make `DATADESC Suit Power Device` (`DEFINE_EMBEDDED`) preferred.
 
-- playground_infinite_sprint (`0 / 1`) - Enable infinite sprint
+##### [Networkable Suit Power Device](#networkable-suit-power-device)
 
-#### Known issues
+Used for networking sprint device data.
 
-- Suppose you enabled both infinite sprint and always run. If you disable infinite sprint, you will keep sprinting, but it doesn't drain aux power. This is because you are still using the old sprint device that doesn't drain aux power, until `StopSprinting` is called. If I can find a way to tracking the changes of `playground_infinite_sprint`, I can probably call `StopSprinting` manually right after it changed. This way it will remove the old device instantly.
+#### Modifiers
+
+##### `VKZ_EMBEDDED_SPRINT_DEVICE_FIELD`
+
+Prefer to use `DEFINE_EMBEDDED` over `DEFINE_CUSTOM_FIELD` for `m_SprintDevice`
 
 ### Always Run
 
-Keep sprinting whenever you can. Doesn't affect vehicles.
+Keep sprinting whenever you can. No effect on vehicles.
 
 #### TODOs
 
-- Use sprint key as walk key
+- Use sprint key to walk when enabled
 
 #### ConVars
 
@@ -71,17 +87,73 @@ Keep sprinting whenever you can. Doesn't affect vehicles.
 
 #### Notes
 
-You still cannot run when grabbing something. But thanks for Mapbase, you can enable `sv_player_enable_propsprint` and `sv_player_enable_gravgun_sprint` for those Functionalities.
+You still cannot run when grabbing something. But thanks for Mapbase,
+you can enable `sv_player_enable_propsprint` and `sv_player_enable_gravgun_sprint` to get desired behavior.
 
 ### Adjustable Crouching Speed
 
+## Snippets (Dependencies)
+
 ### Restorable Suit Power Device
 
-Provide `CSuitPowerDeviceDataOps` class for saving & restoring `CSuitPowerDevice` fields
+Provide `CSuitPowerDeviceDataOps` class for saving & restoring device classes so that you can use `DEFINE_CUSTOM_FIELD`
+
+#### Notes
+
+At this time it doesn't have any good use since it doesn't perform any side effect.
+Consider using `DATADESC Suit Power Device` instead.
+
+### DATADESC Suit Power Device
+
+Provide data description table for device classes so that you can use `DEFINE_EMBEDDED` for defining suit devices as field.
 
 ### Invalid Suit Power Device
 
-Provide static member `CSuitPowerDevice::Invalid` that serve as a placeholder. It should not be used in any way.
+Provide default constructor for base device class, allows default constructing base device object.
+The default constructor will create an invalid device that serve as a placeholder.
+The invalid device should not be used in any way. I've added a bunch of assertions to exposing issues.
+Note that each device class can define it's own meaning of "valid" by overriding `isValid`.
+You can check whether this device is valid by calling `isValid`, but **DO NOT USE `GetDeviceID` for validation**.
+
+### Networkable Suit Power Device
+
+Declare base device class as embedded network variable, and provide send table and receive table for it.
+
+Usage:
+
+```cpp
+// server_class.h
+
+// Declare server class member
+CNetworkVarEmbedded(CSprintDevice, m_SprintDevice);
+
+// ==================================
+
+// server_class.cpp
+
+// IMPLEMENT_SERVERCLASS_ST
+    // ...
+    SendPropDataTable(SENDINFO_DT(m_SprintDevice), &REFERENCE_SEND_TABLE(DT_SprintDevice), SendProxy_SendLocalDataTable),
+    // ...
+// END_SEND_TABLE
+```
+
+```cpp
+// client_class.h
+
+// Declare client class member
+C_SprintDevice m_SprintDevice;
+
+// ==================================
+
+// client_class.cpp
+
+// IMPLEMENT_CLIENTCLASS_DT
+    // ...
+    RecvPropDataTable(RECVINFO_DT(m_SprintDevice),0, &REFERENCE_RECV_TABLE(DT_SprintDevice)),
+    // ...
+// END_RECV_TABLE
+```
 
 ---
 

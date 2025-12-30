@@ -108,15 +108,14 @@ void CHudSuitPower::OnThink( void )
 #endif
 
 	bool breatherActive = pPlayer->IsBreatherActive();
-#ifndef VKZ_INFINITE_SPRINT
+#ifndef VKZ_ADVANCED_SPRINT
 	int activeDevices = (int)flashlightActive + (int)sprintActive + (int)breatherActive;
 #else
 	int activeDevices = (int)flashlightActive + (int)breatherActive;
 	// Not gonna draw sprint state if it doesn't drain power
-	// VKZ TODO:
-	// if ( pPlayer ) {
+	if (pPlayer->m_SprintDevice.doesDrainPower()) {
 		activeDevices += (int)sprintActive;
-	// }
+	}
 #endif
 
 #ifdef MAPBASE
@@ -266,10 +265,9 @@ void CHudSuitPower::Paint()
 			ypos += text2_gap;
 		}
 
-#ifdef VKZ_INFINITE_SPRINT
+#ifdef VKZ_ADVANCED_SPRINT
 		// No need to paint indicator if it doesn't drain power
-		// if ( !isInfiniteSprintEnabled() )
-		// VKZ TODO:
+		if (pPlayer->m_SprintDevice.doesDrainPower())
 #endif
 		{
 #ifdef MAPBASE

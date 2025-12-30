@@ -14,6 +14,7 @@
 
 #include "c_baseplayer.h"
 #include "c_hl2_playerlocaldata.h"
+#include "suit_power_device.h"
 
 #if !defined( HL2MP ) && defined ( MAPBASE )
 #include "mapbase/mapbase_playeranimstate.h"
@@ -79,6 +80,9 @@ public:
 	EHANDLE				m_hClosestNPC;
 	float				m_flSpeedModTime;
 	bool				m_fIsSprinting;
+#ifdef VKZ_ADVANCED_SPRINT
+	C_SprintDevice		m_SprintDevice;
+#endif
 
 private:
 	C_BaseHLPlayer( const C_BaseHLPlayer & ); // not defined, not accessible

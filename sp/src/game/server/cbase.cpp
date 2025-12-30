@@ -6,7 +6,7 @@
 //
 //=============================================================================//
 /*
-Entity Data Descriptions
+Valve Knowledge (Entity Data Descriptions):
 
 Each entity has an array which defines it's data in way that is useful for
 entity communication, parsing initial values from the map, and save/restore.
@@ -581,7 +581,7 @@ class CEventsSaveDataOps : public ISaveRestoreOps
 
 	virtual bool Parse( const SaveRestoreFieldInfo_t &fieldInfo, char const* szValue )
 	{
-		CBaseEntityOutput *ev = (CBaseEntityOutput*)fieldInfo.pField;
+		CBaseEntityOutput *ev = static_cast<CBaseEntityOutput*>(fieldInfo.pField);
 		ev->ParseEventAction( szValue );
 		return true;
 	}
@@ -2025,7 +2025,7 @@ class CVariantSaveDataOps : public CDefSaveRestoreOps
 	// As a result, we try to read it to figure out what type it is.
 	virtual bool Parse( const SaveRestoreFieldInfo_t &fieldInfo, char const* szValue )
 	{
-		variant_t *var = (variant_t*)fieldInfo.pField;
+		variant_t *var = static_cast<variant_t*>(fieldInfo.pField);
 
 		*var = Variant_Parse(szValue);
 

@@ -53,8 +53,8 @@ $Project "Server (HL2)"
 		$Folder	"HL2 DLL"
 		{
 			// New files
-			$File	"hl2\suit_power_device.cpp"
-			$File	"hl2\suit_power_device.h"
+			$File	"$SRCDIR\game\shared\hl2\suit_power_device.cpp"
+			$File	"$SRCDIR\game\shared\hl2\suit_power_device.h"
 
 			$File	"$SRCDIR\game\shared\hl2\achievements_hl2.cpp"
 			$File	"hl2\ai_allymanager.cpp"

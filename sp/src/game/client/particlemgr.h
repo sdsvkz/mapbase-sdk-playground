@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -165,6 +165,9 @@ class CParticleSubTextureGroup;
 
 struct Particle
 {
+	Particle() {}
+	virtual ~Particle() {}
+
 	Particle *m_pPrev, *m_pNext;
 
 	// Which sub texture this particle uses (so we can get at the tcoord mins and maxs).

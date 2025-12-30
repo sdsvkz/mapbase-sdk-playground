@@ -25,11 +25,25 @@ $Conditional NEW_RESPONSE_SYSTEM	"1" // Toggles the new Response System library 
 
 //-----------------------------------------------------------------------------
 
-// VKZ additional functionality conditionals
-$Conditional VKZ_DEV					"1" // Additional debugging codes
-$Conditional VKZ_INFINITE_SPRINT		"1" // Infinite Sprint
-$Conditional VKZ_ALWAYS_RUN				"1" // Always Run
-$Conditional VKZ_FIX_QUANTUM_CROUCH		"1" // Fix Quantum Crouch
+// VKZ snippets conditionals
+
+// Development
+$Conditional VKZ_DEV "0" // Additional debugging codes
+$conditional VKZ_NEVER_DEFINE "0" // Deprecated snippets or snippets only used for explanation
+
+// Functionalities
+$Conditional VKZ_ADVANCED_SPRINT "1" // Advanced Sprint
+$Conditional VKZ_ALWAYS_RUN "1" // Always Run
+$Conditional VKZ_FIX_QUANTUM_CROUCH "1" // Fix Quantum Crouch
+
+// Suit Power Device snippets
+$Conditional VKZ_INVALID_SUIT_POWER_DEVICE "1" // Invalid Suit Power Device
+$Conditional VKZ_RESTORABLE_SUIT_POWER_DEVICE "1" // Restorable Suit Power Device
+$Conditional VKZ_DATADESC_SUIT_POWER_DEVICE "1" // DATADESC Suit Power Device
+$Conditional VKZ_NETWORKABLE_SUIT_POWER_DEVICE "1" // Networkable Suit Power Device
+
+// Modifiers
+$Conditional VKZ_EMBEDDED_SPRINT_DEVICE_FIELD "0" // Advanced Sprint: Prefer to use `DEFINE_EMBEDDED` for `m_SprintDevice`
 
 //-----------------------------------------------------------------------------
 
@@ -50,10 +64,16 @@ $Configuration "Debug"
 		$PreprocessorDefinitions		"$BASE;MAPBASE"		[$MAPBASE]
 
     // VKZ
-		$PreprocessorDefinitions		"$BASE;VKZ_DEV"		[$VKZ_DEV]
-		$PreprocessorDefinitions		"$BASE;VKZ_INFINITE_SPRINT"		[$VKZ_INFINITE_SPRINT]
-		$PreprocessorDefinitions		"$BASE;VKZ_ALWAYS_RUN"		[$VKZ_ALWAYS_RUN]
-		$PreprocessorDefinitions		"$BASE;VKZ_FIX_QUANTUM_CROUCH"		[$VKZ_FIX_QUANTUM_CROUCH]
+		$PreprocessorDefinitions		"$BASE;VKZ_DEV" [$VKZ_DEV]
+    $PreprocessorDefinitions    "$BASE;VKZ_NEVER_DEFINE" [$VKZ_NEVER_DEFINE]
+		$PreprocessorDefinitions		"$BASE;VKZ_ADVANCED_SPRINT" [$VKZ_ADVANCED_SPRINT]
+		$PreprocessorDefinitions		"$BASE;VKZ_ALWAYS_RUN" [$VKZ_ALWAYS_RUN]
+		$PreprocessorDefinitions		"$BASE;VKZ_FIX_QUANTUM_CROUCH" [$VKZ_FIX_QUANTUM_CROUCH]
+    $PreprocessorDefinitions    "$BASE;VKZ_INVALID_SUIT_POWER_DEVICE" [$VKZ_INVALID_SUIT_POWER_DEVICE]
+    $PreprocessorDefinitions    "$BASE;VKZ_RESTORABLE_SUIT_POWER_DEVICE" [$VKZ_RESTORABLE_SUIT_POWER_DEVICE]
+    $PreprocessorDefinitions    "$BASE;VKZ_DATADESC_SUIT_POWER_DEVICE" [$VKZ_DATADESC_SUIT_POWER_DEVICE]
+    $PreprocessorDefinitions    "$BASE;VKZ_NETWORKABLE_SUIT_POWER_DEVICE" [$VKZ_NETWORKABLE_SUIT_POWER_DEVICE]
+    $PreprocessorDefinitions    "$BASE;VKZ_EMBEDDED_SPRINT_DEVICE_FIELD" [$VKZ_EMBEDDED_SPRINT_DEVICE_FIELD]
 	}
 }
 
@@ -74,9 +94,13 @@ $Configuration "Release"
 		$PreprocessorDefinitions		"$BASE;MAPBASE"		[$MAPBASE]
 
 		// VKZ
-		$PreprocessorDefinitions		"$BASE;VKZ_DEV"		[$VKZ_DEV]
-		$PreprocessorDefinitions		"$BASE;VKZ_INFINITE_SPRINT"		[$VKZ_INFINITE_SPRINT]
-		$PreprocessorDefinitions		"$BASE;VKZ_ALWAYS_RUN"		[$VKZ_ALWAYS_RUN]
-		$PreprocessorDefinitions		"$BASE;VKZ_FIX_QUANTUM_CROUCH"		[$VKZ_FIX_QUANTUM_CROUCH]
+		$PreprocessorDefinitions		"$BASE;VKZ_ADVANCED_SPRINT" [$VKZ_ADVANCED_SPRINT]
+		$PreprocessorDefinitions		"$BASE;VKZ_ALWAYS_RUN" [$VKZ_ALWAYS_RUN]
+		$PreprocessorDefinitions		"$BASE;VKZ_FIX_QUANTUM_CROUCH" [$VKZ_FIX_QUANTUM_CROUCH]
+    $PreprocessorDefinitions    "$BASE;VKZ_INVALID_SUIT_POWER_DEVICE" [$VKZ_INVALID_SUIT_POWER_DEVICE]
+    $PreprocessorDefinitions    "$BASE;VKZ_RESTORABLE_SUIT_POWER_DEVICE" [$VKZ_RESTORABLE_SUIT_POWER_DEVICE]
+    $PreprocessorDefinitions    "$BASE;VKZ_DATADESC_SUIT_POWER_DEVICE" [$VKZ_DATADESC_SUIT_POWER_DEVICE]
+    $PreprocessorDefinitions    "$BASE;VKZ_NETWORKABLE_SUIT_POWER_DEVICE" [$VKZ_NETWORKABLE_SUIT_POWER_DEVICE]
+    $PreprocessorDefinitions    "$BASE;VKZ_EMBEDDED_SPRINT_DEVICE_FIELD" [$VKZ_EMBEDDED_SPRINT_DEVICE_FIELD]
 	}
 }

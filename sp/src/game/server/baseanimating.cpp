@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright Valve Corporation, All rights reserved. ============//
 //
 // Purpose: Base class for all animating characters and objects.
 //
@@ -48,7 +48,7 @@ class CIKSaveRestoreOps : public CClassPtrSaveRestoreOps
 	{
 		Assert( fieldInfo.pTypeDesc->fieldSize == 1 );
 		CIKContext **pIK = (CIKContext **)fieldInfo.pField;
-		bool bHasIK = (*pIK) != 0;
+		bool bHasIK = (*pIK) != NULL;
 		pSave->WriteBool( &bHasIK );
 	}
 
