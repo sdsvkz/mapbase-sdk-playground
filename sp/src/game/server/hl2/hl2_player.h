@@ -23,6 +23,8 @@
 #include "mapbase/mapbase_playeranimstate.h"
 #endif
 
+#include <functional>
+
 
 class CAI_Squad;
 class CPropCombineBall;
@@ -153,6 +155,18 @@ public:
 	bool SuitPower_ShouldRecharge( void );
 	float SuitPower_GetCurrentPercentage( void ) { return m_HL2Local.m_flSuitPower; }
 	
+	// Suit Power Device
+
+#ifdef VKZ_ADVANCED_SPRINT
+	void useSprintDevice(const CSprintDevice& device);
+	const CSprintDevice* getSprintDevice() const {
+		return &m_SprintDevice;
+	}
+	void modifySprintDevice(std::function<CSprintDevice(const CSprintDevice*)> block) {
+		useSprintDevice(block(getSprintDevice()));
+	}
+#endif
+
 	void SetFlashlightEnabled( bool bState );
 
 #ifdef MAPBASE
@@ -194,7 +208,7 @@ public:
 	// Locator
 	void UpdateLocatorPosition( const Vector &vecPosition );
 
-	// Sprint Device
+	// Sprint
 	void StartAutoSprint( void );
 #ifdef VKZ_ALWAYS_RUN
 	// Is always running?
@@ -210,13 +224,6 @@ public:
 	bool IsSprinting( void ) { return m_fIsSprinting; }
 	bool CanSprint( void );
 	void EnableSprint( bool bEnable);
-#ifdef VKZ_ADVANCED_SPRINT
-	void useSprintDevice(const CSprintDevice& device);
-	const CSprintDevice* getSprintDevice() const {
-		Assert(m_SprintDevice.isValid());
-		return &m_SprintDevice;
-	}
-#endif
 
 	bool isMovingHorizontally() const {
 		const auto& velocity = GetAbsVelocity();

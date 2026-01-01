@@ -91,10 +91,6 @@ C_BaseHLPlayer::C_BaseHLPlayer()
 	
 	m_nProtagonistIndex = -1;
 #endif
-
-#ifdef VKZ_ADVANCED_SPRINT
-	m_SprintDevice = C_SprintDevice::Default;
-#endif
 }
 
 //-----------------------------------------------------------------------------

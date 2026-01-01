@@ -4,15 +4,15 @@
     #pragma once
 #endif
 
-#include <memory>
-
 #include "gamerules.h"
 #include "shareddefs.h"
 
+#include <memory>
 #include <concepts>
 
 #ifdef VKZ_RESTORABLE_SUIT_POWER_DEVICE
 #include "isaverestore.h"
+#include <tuple>
 #endif
 
 #ifdef VKZ_RESTORABLE_SUIT_POWER_DEVICE
@@ -21,43 +21,68 @@
 #define DEFINE_DEVICE_SAVE(fieldInfoParamName, pSaveParamName) \
     virtual void WriteSelf( const SaveRestoreFieldInfo_t& fieldInfoParamName, ISave* pSaveParamName ) const
 
+#define DEFINE_DEVICE_SAVE_WITH_NAME(funcName, fieldInfoParamName, pSaveParamName) \
+    virtual void funcName( const SaveRestoreFieldInfo_t& fieldInfoParamName, ISave* pSaveParamName ) const
+
 // `Read` function signature for device classes
 #define DEFINE_DEVICE_RESTORE(fieldInfoParamName, pRestoreParamName) \
     static inline ThisClass Read( const SaveRestoreFieldInfo_t& fieldInfoParamName, IRestore* pRestoreParamName )
+
+#define DEFINE_DEVICE_RESTORE_WITH_NAME(funcName, fieldInfoParamName, pRestoreParamName) \
+    static inline ThisClass funcName( const SaveRestoreFieldInfo_t& fieldInfoParamName, IRestore* pRestoreParamName )
 
 #endif
 
 #ifdef CLIENT_DLL
 class C_SuitPowerDevice;
+#ifdef VKZ_ADVANCED_SPRINT
+class C_SprintDevice;
+#endif
 #else
 class CSuitPowerDevice;
+#ifdef VKZ_ADVANCED_SPRINT
+class CSprintDevice;
+#endif
 #endif
 
 namespace SuitPowerDevice {
 
 #ifdef CLIENT_DLL
     using BaseDevice = C_SuitPowerDevice;
+#ifdef VKZ_ADVANCED_SPRINT
+    using SprintDevice = C_SprintDevice;
+#endif
 #else
     using BaseDevice = CSuitPowerDevice;
+#ifdef VKZ_ADVANCED_SPRINT
+    using SprintDevice = CSprintDevice;
+#endif
+#endif
+
+#ifdef VKZ_INVALID_SUIT_POWER_DEVICE
+    template<typename T>
+    concept ValidatableSuitPowerDevice = true;
+#else
+    template<typename T>
+    concept ValidatableSuitPowerDevice = requires(const T & device) {
+        { device.isValid() } -> std::same_as<bool>;
+    };
 #endif
 
 #ifdef VKZ_RESTORABLE_SUIT_POWER_DEVICE
-    template<typename T>
-    concept Restorable = requires(const SaveRestoreFieldInfo_t & fieldInfo, IRestore * pRestore, const T &device)
-    {
-        { T::Read(fieldInfo, pRestore) } -> std::same_as<T>;
-        { device.isValid() } -> std::same_as<bool>;
-    };
+	template<typename T>
+	concept RestorableSuitPowerDevice = requires(const SaveRestoreFieldInfo_t & fieldInfo, IRestore * pRestore, const T & device) {
+		{ T::Read(fieldInfo, pRestore) } -> std::same_as<T>;
+	} && ValidatableSuitPowerDevice<T>;
 #endif
 
     template<typename T>
     concept SuitPowerDevice =
         std::derived_from<T, BaseDevice>
 #ifdef VKZ_RESTORABLE_SUIT_POWER_DEVICE
-        && Restorable<T>
+        && RestorableSuitPowerDevice<T>
 #endif
-        ;
-
+        && std::convertible_to<decltype(T::TypeName), const char *>;
 }
 
 #ifdef CLIENT_DLL
@@ -72,6 +97,18 @@ class CSuitPowerDevice
 public:
 
 #ifdef CLIENT_DLL
+    static constexpr const char TypeName[] = "C_SuitPowerDevice";
+#else
+    static constexpr const char TypeName[] = "CSuitPowerDevice";
+#endif
+
+#ifdef VKZ_INVALID_SUIT_POWER_DEVICE
+private:
+    struct InvalidConstructorKey {};
+#endif
+public:
+
+#ifdef CLIENT_DLL
 
     DECLARE_CLASS_NOBASE(C_SuitPowerDevice);
 
@@ -80,13 +117,22 @@ public:
 #endif
 
 #ifdef VKZ_INVALID_SUIT_POWER_DEVICE
-    // Create an invalid device
-    constexpr C_SuitPowerDevice() noexcept : ThisClass(0, 0.0f) {}
-#endif
+private:
+	C_SuitPowerDevice(InvalidConstructorKey)
+		: m_bitsDeviceID(0), m_flDrainRate(0.0f) {}
 
-    // NOTE: Prevent to use `bits_SUIT_DEVICE_INVALID` as `bitsID`, because it's reserved for invalid device
-    constexpr C_SuitPowerDevice(int bitsID, float flDrainRate) noexcept
-        : m_bitsDeviceID(bitsID), m_flDrainRate(flDrainRate) {}
+public:
+	// Create an invalid device
+	C_SuitPowerDevice()
+		: C_SuitPowerDevice(Invalid) {}
+#endif
+public:
+    // Avoid using `bits_SUIT_DEVICE_INVALID` as `bitsID`, because it's reserved for invalid device
+    C_SuitPowerDevice(int bitsID, float flDrainRate)
+        : m_bitsDeviceID(bitsID), m_flDrainRate(flDrainRate)
+    {
+        validate();
+    }
 
 #else
 
@@ -102,28 +148,34 @@ public:
 #endif
 
 #ifdef VKZ_INVALID_SUIT_POWER_DEVICE
-
+private:
+    CSuitPowerDevice(InvalidConstructorKey)
 #ifndef VKZ_NETWORKABLE_SUIT_POWER_DEVICE
-    constexpr
+        : m_bitsDeviceID(0), m_flDrainRate(0.0f) {}
+#else
+        : m_bitsDeviceID(0)
+    {
+        m_flDrainRate = 0.0f;
+    }
 #endif
+
+public:
     // Create an invalid device
     CSuitPowerDevice()
-        noexcept(IsDrainRateNoThrowAssignable)
-        : CSuitPowerDevice(0, 0.0f) {}
+        : CSuitPowerDevice(Invalid) {}
 #endif
-
-    // NOTE: Prevent to use `bits_SUIT_DEVICE_INVALID` as `bitsID`, because it's reserved for invalid device
-#ifndef VKZ_NETWORKABLE_SUIT_POWER_DEVICE
-    constexpr
-#endif
+public:
+    // Avoid using `bits_SUIT_DEVICE_INVALID` as `bitsID`, because it's reserved for invalid device
     CSuitPowerDevice(int bitsID, float flDrainRate)
-        noexcept(IsDrainRateNoThrowAssignable)
 #ifndef VKZ_NETWORKABLE_SUIT_POWER_DEVICE
-        : m_bitsDeviceID(bitsID), m_flDrainRate(flDrainRate) {
+        : m_bitsDeviceID(bitsID), m_flDrainRate(flDrainRate)
+    {
+        validate();
     }
 #else
         : m_bitsDeviceID(bitsID)
     {
+        validate();
         m_flDrainRate = flDrainRate;
     }
 #endif
@@ -143,18 +195,33 @@ protected:
 public:
 
 #ifdef VKZ_INVALID_SUIT_POWER_DEVICE
+    static const ThisClass Invalid;
+
     // For a basic device, valid means `id != bits_SUIT_DEVICE_INVALID`
-    constexpr virtual bool isValid() const noexcept {
-        return m_bitsDeviceID & bits_SUIT_DEVICE_INVALID;
+    virtual bool isValid() const {
+        return !(m_bitsDeviceID & bits_SUIT_DEVICE_INVALID);
     }
 #endif
 
-    constexpr virtual bool isSameCategory(const ThisClass& device) const noexcept {
+    void validate() const {
+#ifdef VKZ_INVALID_SUIT_POWER_DEVICE
+#ifdef VKZ_DEV
+        Assert(isValid());
+#else
+        if (!isValid()) {
+            auto deviceStr = std::make_unique<char[]>(1024);
+            toString(deviceStr);
+            DevWarning("Invalid device used: %s\n", deviceStr.get());
+        }
+#endif
+#endif
+    }
+
+    virtual bool isSameCategory(const ThisClass& device) const {
         return m_bitsDeviceID & device.m_bitsDeviceID;
     }   
 
-    constexpr bool equals(const ThisClass &device) const
-        noexcept(IsDrainRateNoThrowConvertible)
+    bool equals(const ThisClass &device) const
     {
         return isSameCategory(device) && m_flDrainRate == device.m_flDrainRate;
     }
@@ -170,32 +237,19 @@ public:
         );
 	}
 
-    constexpr bool doesDrainPower() const
-#ifndef VKZ_INVALID_SUIT_POWER_DEVICE
-        noexcept(IsDrainRateNoThrowConvertible)
-#endif
+    bool doesDrainPower() const
     {
-#ifdef VKZ_INVALID_SUIT_POWER_DEVICE
-        Assert(isValid());
-#endif
+        validate();
         return m_flDrainRate > 0;
     }
 
-    constexpr bool doesChargePower() const
-#ifndef VKZ_INVALID_SUIT_POWER_DEVICE
-        noexcept(IsDrainRateNoThrowConvertible)
-#endif
+    bool doesChargePower() const
     {
-#ifdef VKZ_INVALID_SUIT_POWER_DEVICE
-        Assert(isValid());
-#endif
+        validate();
         return m_flDrainRate < 0;
     }
 
-    constexpr bool doesChangePower() const
-#ifndef VKZ_INVALID_SUIT_POWER_DEVICE
-        noexcept(IsDrainRateNoThrowConvertible)
-#endif
+    bool doesChangePower() const
     {
         return doesDrainPower() || doesChargePower();
     }
@@ -206,23 +260,16 @@ public:
     *   This is actually counted as using the device
     *   Since Valve use bitmask to represent active devices
     */
-    constexpr int GetDeviceID(void) const
-#ifndef VKZ_INVALID_SUIT_POWER_DEVICE
-        noexcept
-#endif
+    int GetDeviceID(void) const
     {
-#ifdef VKZ_INVALID_SUIT_POWER_DEVICE
-        Assert(isValid());
-#endif
+        validate();
         return m_bitsDeviceID;
     }
 
 #ifndef CLIENT_DLL
     virtual float GetDeviceDrainRate(void) const
     {
-    #ifdef VKZ_INVALID_SUIT_POWER_DEVICE
-        Assert(isValid());
-    #endif
+        validate();
         if (g_pGameRules->GetSkillLevel() == SKILL_EASY && hl2_episodic.GetBool() && !(GetDeviceID() & bits_SUIT_DEVICE_SPRINT))
             // Easy mode drains non-sprint devices at half rate in Episodic?
             return m_flDrainRate * 0.5f;
@@ -231,26 +278,15 @@ public:
     }
 #endif
 
-    constexpr int getRawDrainRate(void) const
-#ifndef VKZ_INVALID_SUIT_POWER_DEVICE
-        noexcept
-#endif
+    int getRawDrainRate(void) const
     {
-#ifdef VKZ_INVALID_SUIT_POWER_DEVICE
-        Assert(isValid());
-#endif
+        validate();
         return m_flDrainRate;
     }
 
 #ifdef MAPBASE
 
-#if defined(CLIENT_DLL) || !defined(VKZ_NETWORKABLE_SUIT_POWER_DEVICE)
-    constexpr
-#endif
     virtual void SetDeviceDrainRate(float flDrainRate)
-#if defined(CLIENT_DLL) || !defined(VKZ_NETWORKABLE_SUIT_POWER_DEVICE)
-        noexcept(IsDrainRateNoThrowAssignable)
-#endif
     {
         m_flDrainRate = flDrainRate;
     }
@@ -258,16 +294,30 @@ public:
 #endif
 
 #if !defined(CLIENT_DLL) && defined(VKZ_RESTORABLE_SUIT_POWER_DEVICE)
+protected:
+    void WriteSelfExceptId(const SaveRestoreFieldInfo_t& fieldInfo, ISave* pSave) const {
+        // StartBlock called
+        const auto& drainRate = static_cast<const float&>(m_flDrainRate);
+        pSave->WriteFloat(&drainRate);
+        // EndBlock called
+    }
+
+    static inline std::tuple<float> ReadExceptId(const SaveRestoreFieldInfo_t& fieldInfo, IRestore* pRestore) {
+        float drainRate;
+        pRestore->ReadFloat(&drainRate);
+        return std::make_tuple(drainRate);
+    }
 public:
     // Used by `CSuitPowerDeviceDataOps` to save this object
     DEFINE_DEVICE_SAVE(fieldInfo, pSave) {
         // StartBlock called
-		const auto& drainRate = static_cast<const float&>(m_flDrainRate);
         // Order to write matters
         pSave->WriteInt(&m_bitsDeviceID);
-        pSave->WriteFloat(&drainRate);
+        WriteSelfExceptId(fieldInfo, pSave);
         // EndBlock called
     }
+
+    
 
     // Used by `CSuitPowerDeviceDataOps` to restore this object
     DEFINE_DEVICE_RESTORE(fieldInfo, pRestore) {
@@ -279,16 +329,11 @@ public:
 		pRestore->ReadFloat(&drainRate);
 		return CSuitPowerDevice(id, drainRate);
         // EndBlock called
-    };
+    }
 #endif
 
 public:
-    
     using DrainRateType = decltype(ThisClass::m_flDrainRate);
-
-    static constexpr bool IsDrainRateNoThrowAssignable = std::is_nothrow_assignable_v<DrainRateType, float>;
-    static constexpr bool IsDrainRateNoThrowConvertible = std::is_nothrow_convertible_v<DrainRateType, float>;
-
 };
 
 #ifdef VKZ_NETWORKABLE_SUIT_POWER_DEVICE
@@ -300,6 +345,39 @@ EXTERN_SEND_TABLE(DT_SuitPowerDevice)
 #endif
 
 #endif
+
+namespace SuitPowerDevice {
+    /**
+     * @brief Downcasting device
+     * @tparam Device Target device class
+     * @param device Object to be cast
+     * @throws std::bad_cast
+     * @return
+     */
+    template<SuitPowerDevice::SuitPowerDevice Device>
+    const Device& deviceCast(const SuitPowerDevice::BaseDevice& device) {
+        try {
+            return dynamic_cast<const Device&>(device);
+        } catch (const std::bad_cast& e) {
+            auto deviceStr = std::make_unique<char[]>(1024);
+            device.toString(deviceStr);
+            DevWarning("Device is not a %s: %s\ne.what(): %s\n", static_cast<const char *>(Device::TypeName), deviceStr.get(), e.what());
+            throw e;
+        }
+    }
+
+    /**
+     * @brief Downcasting device
+     * @tparam Device Target device class
+     * @param device Object to be cast
+     * @throws std::bad_cast
+     * @return
+     */
+    template<SuitPowerDevice::SuitPowerDevice Device>
+    Device& deviceCast(SuitPowerDevice::BaseDevice& device) {
+        return const_cast<Device&>(deviceCast<Device>(std::as_const(device)));
+    }
+}
 
 #ifdef HL2MP
 // 100 units in 4 seconds
@@ -327,6 +405,12 @@ class CSprintDevice : public CSuitPowerDevice
 public:
 
 #ifdef CLIENT_DLL
+    static constexpr const char TypeName[] = "C_SprintDevice";
+#else
+    static constexpr const char TypeName[] = "CSprintDevice";
+#endif
+
+#ifdef CLIENT_DLL
 
     DECLARE_CLASS(C_SprintDevice, C_SuitPowerDevice);
 
@@ -335,14 +419,11 @@ public:
 #endif
     DECLARE_EMBEDDED_NETWORKVAR();
 
-    constexpr C_SprintDevice() noexcept
+    C_SprintDevice()
         : ThisClass(Default) {}
 
-    constexpr C_SprintDevice(int bitsID, float drainRate, float sprintSpeed = DEFAULT_SPRINT_SPEED) noexcept
-        : ThisClass(BaseClass(bitsID, drainRate), sprintSpeed) {}
-
-    constexpr C_SprintDevice(const BaseClass& device, float sprintSpeed = DEFAULT_SPRINT_SPEED) noexcept
-        : BaseClass(device), m_flSprintSpeed(sprintSpeed) {}
+    C_SprintDevice(float drainRate, float sprintSpeed = DEFAULT_SPRINT_SPEED)
+        : BaseClass(bits_SUIT_DEVICE_SPRINT, drainRate), m_flSprintSpeed(sprintSpeed) {}
 
 protected:
     float m_flSprintSpeed;
@@ -360,14 +441,11 @@ protected:
 #endif
     DECLARE_EMBEDDED_NETWORKVAR();
 
-    constexpr CSprintDevice() noexcept
+    CSprintDevice()
         : CSprintDevice(Default) {}
 
-    CSprintDevice(int bitsID, float drainRate, float sprintSpeed = DEFAULT_SPRINT_SPEED)
-        : CSprintDevice(BaseClass(bitsID, drainRate), sprintSpeed) {}
-
-    CSprintDevice(const BaseClass& device, float sprintSpeed = DEFAULT_SPRINT_SPEED)
-        : BaseClass(device)
+    CSprintDevice(float drainRate, float sprintSpeed = DEFAULT_SPRINT_SPEED)
+        : BaseClass(bits_SUIT_DEVICE_SPRINT, drainRate)
     {
         m_flSprintSpeed = sprintSpeed;
     }
@@ -385,9 +463,9 @@ public:
     static const ThisClass Default;
 
     // For a sprint device, returns `true` only if device `id == bits_SUIT_DEVICE_SPRINT`
-    constexpr virtual bool isValid() const noexcept { return m_bitsDeviceID == bits_SUIT_DEVICE_SPRINT; }
+    virtual bool isValid() const { return m_bitsDeviceID & bits_SUIT_DEVICE_SPRINT; }
 
-    constexpr bool equals(const ThisClass& device) const noexcept {
+    bool equals(const ThisClass& device) const {
         return BaseClass::equals(device) && m_flSprintSpeed == device.m_flSprintSpeed;
     }
 
@@ -399,12 +477,14 @@ public:
             "\tsprintSpeed: %.2f,\n"
             "}",
             m_bitsDeviceID,
-            static_cast<float>(m_flDrainRate)
+            static_cast<float>(m_flDrainRate),
+            static_cast<float>(m_flSprintSpeed)
         );
     }
 
-    virtual float getSprintSpeed() const noexcept {
-        Assert(isValid());
+    virtual float getSprintSpeed() const
+    {
+        validate();
         return m_flSprintSpeed;
     }
 
@@ -413,7 +493,6 @@ public:
     }
 
     virtual void resetDrainRate() {
-        Assert(isValid());
         setSprintSpeed(DEFAULT_SPRINT_DRAIN_RATE);
     }
 
@@ -425,16 +504,21 @@ public:
 
     DEFINE_DEVICE_SAVE(fieldInfo, pSave) {
         pSave->WriteFloat(&m_flSprintSpeed.Get());
-        BaseClass::WriteSelf(fieldInfo, pSave);
+        BaseClass::WriteSelfExceptId(fieldInfo, pSave);
     }
 
     DEFINE_DEVICE_RESTORE(fieldInfo, pRestore) {
         float sprintSpeed;
         // Careful with ordering
         pRestore->ReadFloat(&sprintSpeed);
-        return ThisClass(BaseClass::Read(fieldInfo, pRestore), sprintSpeed);
+		const auto& baseDeviceData = BaseClass::ReadExceptId(fieldInfo, pRestore);
+        const auto drainRate = std::get<0>(baseDeviceData);
+        return ThisClass(drainRate, sprintSpeed);
     };
 #endif
+
+public:
+    using SprintSpeedType = decltype(ThisClass::m_flSprintSpeed);
 };
 
 #ifdef CLIENT_DLL
@@ -513,7 +597,7 @@ class CSuitPowerDeviceDataOps : public CDefSaveRestoreOps
 {
 private:
 
-    constexpr CSuitPowerDeviceDataOps() noexcept = default;
+    constexpr CSuitPowerDeviceDataOps() = default;
 
     // Global object for save & restore `Device`
     static constinit CSuitPowerDeviceDataOps _instance;
@@ -522,7 +606,7 @@ private:
     // You can declare any object that needed for this process here as member
     // Then inject them with constructor
 public:
-    static inline CSuitPowerDeviceDataOps* Get() noexcept {
+    static inline CSuitPowerDeviceDataOps* Get() {
         return &_instance;
     }
 
@@ -595,19 +679,17 @@ class CSuitPowerDeviceDataOps : public CClassPtrSaveRestoreOps
 {
 private:
 
-    consteval CSuitPowerDeviceDataOps() noexcept = default;
+    constexpr CSuitPowerDeviceDataOps() = default;
 
     static constinit CSuitPowerDeviceDataOps _instance;
 
 public:
-    static inline CSuitPowerDeviceDataOps* Get() noexcept {
+    static inline CSuitPowerDeviceDataOps* Get() {
         return &_instance;
     }
 
     virtual void Save(const SaveRestoreFieldInfo_t& fieldInfo, ISave* pSave)
     {
-        Assert(fieldInfo.pTypeDesc->fieldSize == 1);
-
         const auto pDevice = *static_cast<const Device**>(fieldInfo.pField);
 
         if (pDevice == nullptr) {
@@ -623,8 +705,6 @@ public:
 
     virtual void Restore(const SaveRestoreFieldInfo_t& fieldInfo, IRestore* pRestore)
     {
-        Assert(fieldInfo.pTypeDesc->fieldSize == 1);
-
         const auto pDevice = static_cast<Device**>(fieldInfo.pField);
 
         pRestore->StartBlock();

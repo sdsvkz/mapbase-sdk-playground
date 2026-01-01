@@ -287,17 +287,17 @@ public:
 		return Set( m_Value & ( const Type )val ); 
 	}
 
-	constexpr operator const Type&() const noexcept
+	operator const Type&() const
 	{
 		return m_Value; 
 	}
 	
-	constexpr const Type& Get() const noexcept
+	const Type& Get() const
 	{
 		return m_Value; 
 	}
 	
-	constexpr const Type* operator->() const noexcept
+	const Type* operator->() const
 	{
 		return &m_Value; 
 	}

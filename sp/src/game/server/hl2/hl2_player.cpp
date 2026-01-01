@@ -715,9 +715,6 @@ END_SCRIPTDESC();
 #endif
 
 CHL2_Player::CHL2_Player()
-#if defined(VKZ_ADVANCED_SPRINT)
-    : m_SprintDevice()
-#endif
 {
     m_nNumMissPositions	= 0;
     m_pPlayerAISquad = 0;
@@ -822,11 +819,9 @@ void CHL2_Player::HandleSpeedChanges( void )
         if ( bWantSprint )
         {
 #ifdef VKZ_ALWAYS_RUN
-            if (!sv_stickysprint.GetBool() && !isAlwaysRunEnabled())
-            {
+            if (!sv_stickysprint.GetBool() && !isAlwaysRunEnabled()) {
                 StartSprinting();
-            }
-            else {
+            } else {
                 if (isAlwaysRunEnabled()) {
                     startRunning();
                 }
@@ -1765,7 +1760,7 @@ void CHL2_Player::stopRunning() {
 void CHL2_Player::StartSprinting( void )
 {
 #ifdef VKZ_ADVANCED_SPRINT
-    const auto& device = *getSprintDevice();
+    const auto& device = m_SprintDevice;
 #endif
     if (
 #ifdef VKZ_ADVANCED_SPRINT
@@ -1811,7 +1806,7 @@ void CHL2_Player::StartSprinting( void )
 #ifndef VKZ_ADVANCED_SPRINT
     SetMaxSpeed( HL2_SPRINT_SPEED );
 #else
-    SetMaxSpeed(getSprintDevice()->getSprintSpeed());
+    SetMaxSpeed(m_SprintDevice.getSprintSpeed());
 #endif
     m_fIsSprinting = true;
 }
@@ -1869,21 +1864,15 @@ void CHL2_Player::EnableSprint( bool bEnable )
 //-----------------------------------------------------------------------------
 // Purpose: Use a sprint device with new drain rate
 //-----------------------------------------------------------------------------
-void CHL2_Player::useSprintDevice( const CSprintDevice& device ) {
-    if (!device.isValid())
-    {
+void CHL2_Player::useSprintDevice(const CSprintDevice& device) {
+    if (!device.isValid()) {
 #ifdef _DEBUG
         auto deviceStr = std::make_unique<char[]>(1024);
         device.toString(deviceStr);
-        DevWarning("Trying to set sprint device to invalid device: %s\nIgnored.\n", deviceStr.get());
+        Warning("Trying to set sprint device to invalid device: %s\nIgnored.\n", deviceStr.get());
 #else
         Warning("Trying to set sprint device to invalid device, ignored\n");
 #endif
-        return;
-    }
-
-    if (device.GetDeviceID() != bits_SUIT_DEVICE_SPRINT) {
-        Warning("Trying to set sprint device to a device with wrong type, id = %d. Ignored\n",  device.GetDeviceID());
         return;
     }
 
@@ -1891,7 +1880,16 @@ void CHL2_Player::useSprintDevice( const CSprintDevice& device ) {
         return;
     }
 
-    m_SprintDevice.CopyFrom(device);
+    if (m_HL2Local.m_bitsActiveDevices & bits_SUIT_DEVICE_SPRINT)
+    {
+        StopSprinting();
+        m_SprintDevice.CopyFrom(device);
+        StartSprinting();
+    }
+    else
+    {
+        m_SprintDevice.CopyFrom(device);
+    }
 }
 #endif
 
@@ -2587,7 +2585,7 @@ void CHL2_Player::SuitPower_Update( void )
         m_HL2Local.m_bitsActiveDevices
 #ifdef VKZ_ADVANCED_SPRINT
         // Ignore the case that only sprint is active if it doesn't drain power
-        && (!getSprintDevice()->doesDrainPower()
+        && (!m_SprintDevice.doesDrainPower()
             ? m_HL2Local.m_bitsActiveDevices != bits_SUIT_DEVICE_SPRINT
             : true)
 #endif
@@ -2604,7 +2602,7 @@ void CHL2_Player::SuitPower_Update( void )
 
 #ifdef VKZ_ADVANCED_SPRINT
         // Current sprint device
-        const auto& sprintDevice = *getSprintDevice();
+        const auto& sprintDevice = m_SprintDevice;
 #endif
 
         // Don't drain power (and recharge) if player is sprinting but not moving
@@ -2769,12 +2767,14 @@ bool CHL2_Player::SuitPower_AddDevice( const CSuitPowerDevice &device )
 #ifdef _DEBUG
         auto deviceStr = std::make_unique<char[]>(1024);
         device.toString(deviceStr);
-        DevWarning("Trying to use invalid device: %s\nIgnored.\n", deviceStr.get());
+        Warning("Trying to use invalid device: %s\nIgnored.\n", deviceStr.get());
 #else
         Warning("Trying to use invalid device, ignored.\n");
 #endif
         return false;
     }
+#elif defined(VKZ_ADVANCED_SPRINT)
+    #error "VKZ_ADVANCED_SPRINT requires VKZ_INVALID_SUIT_POWER_DEVICE"
 #endif
 
     // Make sure this device is NOT active!!
@@ -2787,13 +2787,12 @@ bool CHL2_Player::SuitPower_AddDevice( const CSuitPowerDevice &device )
     m_HL2Local.m_bitsActiveDevices |= device.GetDeviceID();
     m_flSuitPowerLoad += device.GetDeviceDrainRate();
 #ifdef VKZ_ADVANCED_SPRINT
-    if (device.GetDeviceID() == bits_SUIT_DEVICE_SPRINT) {
+    if (device.GetDeviceID() & bits_SUIT_DEVICE_SPRINT) {
         // Set sprint device
         try {
-            m_SprintDevice.CopyFrom(dynamic_cast<const CSprintDevice&>(device));
-        }
-        catch (std::bad_cast e) {
-            Warning("Failed to assign new sprint device: %s", e.what());
+            m_SprintDevice.CopyFrom(SuitPowerDevice::deviceCast<CSprintDevice>(device));
+        } catch (const std::bad_cast &) {
+            Warning("CHL2_Player::SuitPower_AddDevice: Failed to set sprint device\n");
         }
     }
 #endif
@@ -2807,17 +2806,18 @@ bool CHL2_Player::SuitPower_RemoveDevice( const CSuitPowerDevice &device )
 {
 #ifdef VKZ_INVALID_SUIT_POWER_DEVICE
     // You may want to remove some device to ensure it's off.
-    // But invalid device is surely not possible to be added
-    // since it `Assert` device is valid.
-    // Just ignore it.
+    // But invalid device is surely not possible to be added, they are ignored.
+    // So I can safely ignore it here.
     if (!device.isValid()) {
 #ifdef _DEBUG
         auto deviceStr = std::make_unique<char[]>(1024);
         device.toString(deviceStr);
-        DevWarning("Trying to remove invalid device: %s\nIgnored.", deviceStr.get());
+        DevMsg("Trying to remove invalid device: %s\nIgnored.", deviceStr.get());
 #endif
         return false;
     }
+#elif defined(VKZ_ADVANCED_SPRINT)
+    #error "VKZ_ADVANCED_SPRINT requires VKZ_INVALID_SUIT_POWER_DEVICE"
 #endif
 
     // Make sure this device is active!!
@@ -2856,7 +2856,7 @@ bool CHL2_Player::SuitPower_ShouldRecharge( void )
         m_HL2Local.m_bitsActiveDevices
 #ifdef VKZ_ADVANCED_SPRINT
         // Ignore the case that only sprint is active if it doesn't drain power
-        && (!getSprintDevice()->doesDrainPower()
+        && (!m_SprintDevice.doesDrainPower()
             ? m_HL2Local.m_bitsActiveDevices != bits_SUIT_DEVICE_SPRINT
             : true)
 #endif
@@ -5621,7 +5621,7 @@ void CLogicPlayerProxy::InputSetSprintDrainRate(inputdata_t& inputdata) {
 
     const auto pPlayer = dynamic_cast<CHL2_Player*>(m_hPlayer.Get());
     pPlayer->useSprintDevice(CSprintDevice(
-        bits_SUIT_DEVICE_SPRINT, inputdata.value.Float(),
+        inputdata.value.Float(),
         pPlayer->getSprintDevice()->getSprintSpeed()
     ));
 }
@@ -5632,7 +5632,6 @@ void CLogicPlayerProxy::InputSetSprintSpeed(inputdata_t& inputdata) {
 
     const auto pPlayer = dynamic_cast<CHL2_Player*>(m_hPlayer.Get());
     pPlayer->useSprintDevice(CSprintDevice(
-        bits_SUIT_DEVICE_SPRINT,
         pPlayer->getSprintDevice()->getRawDrainRate(),
         inputdata.value.Float()
     ));

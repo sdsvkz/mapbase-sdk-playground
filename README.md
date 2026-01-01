@@ -6,21 +6,26 @@ Currently, I only care about singleplayer branch. Multiplayer branch is left unt
 
 And currently, I only develop on Windows (x86). There is no guarantee whether it compiles for other platforms.
 
-## Requirements
+## Build instructions
 
-- Visual Studio 2022 (with MSVC v143) / 2026 (with MSVC v145)
-- Latest Windows SDK
-- Set C++ Standard to C++ 20
-- (Optional) Enable C++ Exceptions (/EHsc)
+### Windows
 
-## Capabilities
+Requirements:
 
-- Compiles under C++ 20 (Tested on MSVC v145)
-- All code snippets can be turned on / off
+- Source SDK 2013 Singleplayer installed via Steam, **set to `upcoming` branch.**
+- Visual Studio 2022 / 2026 with the following workload and components:
+    - Desktop development with C++:
+        - Latest MSVC build tools
+        - Latest Windows SDK
+- Python 3.12 or later
 
-### Preprocessor Directives
-
-Each snippet has a macro to control whether to enable it. You can find the definitions and VPC flags in `vpc_script/source_base.vpc`.
+1. Navigate to `sp/src/vpc_scripts` and edit `source_base.vpc` to enable or disable features.
+2. Navigate to `sp/src` and run `createallprojects.bat` to generate `everything.sln`.
+3. Open generated `everything.sln`..
+4. Select all projects, right click and select `Properties`.
+5. In `Configuration Properties > General`, match up MSVC version to your Visual Studio version and set C++ Language Standard to `ISO C++20`.
+6. (Optional) In `Configuration Properties > C/C++ > Code Generation`, set `Enable C++ Exceptions` to `Yes (/EHsc)`.
+7. Click "OK" to save changes. Then, on top menu bar, select `Build > Build Solution`.
 
 ## Snippets (Functionalities)
 
@@ -57,15 +62,19 @@ Instead, you can create a `logic_playerproxy` with `ent_create` and fire `SetSpr
 
 #### Direct requirements
 
-##### [Restorable Suit Power Device](#restorable-suit-power-device) or [DATADESC Suit Power Device](#datadesc-suit-power-device)
+- [Restorable Suit Power Device](#restorable-suit-power-device) or [DATADESC Suit Power Device](#datadesc-suit-power-device)
 
-Used for saving & restoring sprint device data.
-If both are enabled, `Restorable Suit Power Device` (`DEFINE_CUSTOM_FIELD`) is preferred.
-Or you can enable `VKZ_EMBEDDED_SPRINT_DEVICE_FIELD` to make `DATADESC Suit Power Device` (`DEFINE_EMBEDDED`) preferred.
+> Used for saving & restoring sprint device data.
+> If both are enabled, `Restorable Suit Power Device` (`DEFINE_CUSTOM_FIELD`) is preferred.
+> Or you can enable `VKZ_EMBEDDED_SPRINT_DEVICE_FIELD` to make `DATADESC Suit Power Device` (`DEFINE_EMBEDDED`) preferred.
 
-##### [Networkable Suit Power Device](#networkable-suit-power-device)
+- [Networkable Suit Power Device](#networkable-suit-power-device)
 
-Used for networking sprint device data.
+> Used for networking sprint device data.
+
+- [Invalid Suit Power Device](#invalid-suit-power-device)
+
+> Provide virtual function `isValid` for polymorphic validation
 
 #### Modifiers
 
@@ -96,7 +105,21 @@ you can enable `sv_player_enable_propsprint` and `sv_player_enable_gravgun_sprin
 
 ### Restorable Suit Power Device
 
-Provide `CSuitPowerDeviceDataOps` class for saving & restoring device classes so that you can use `DEFINE_CUSTOM_FIELD`
+Provide `CSuitPowerDeviceDataOps` class for saving & restoring `CSuitPowerDevice` so that you can use `DEFINE_CUSTOM_FIELD`
+
+Usage:
+
+```c++
+// hl2_player.cpp
+
+// `m_SprintDevice` is a member of `CHL2_Player` with type `CSprintDevice`
+
+BEGIN_DATADESC( CHL2_Player )
+    // ...
+    DEFINE_CUSTOM_FIELD(m_SprintDevice, CSuitPowerDeviceDataOps<CSprintDevice>::Get()),
+    // ...
+END_DATADESC()
+```
 
 #### Notes
 
@@ -105,55 +128,94 @@ Consider using `DATADESC Suit Power Device` instead.
 
 ### DATADESC Suit Power Device
 
-Provide data description table for device classes so that you can use `DEFINE_EMBEDDED` for defining suit devices as field.
+Provide data description table for `CSuitPowerDevice` so that you can use `DEFINE_EMBEDDED` for defining suit devices as field.
 
 ### Invalid Suit Power Device
 
-Provide default constructor for base device class, allows default constructing base device object.
-The default constructor will create an invalid device that serve as a placeholder.
-The invalid device should not be used in any way. I've added a bunch of assertions to exposing issues.
-Note that each device class can define it's own meaning of "valid" by overriding `isValid`.
-You can check whether this device is valid by calling `isValid`, but **DO NOT USE `GetDeviceID` for validation**.
+Provide default constructor for `CSuitPowerDevice`, allows default constructing base device object.
+The default constructor will create an invalid device, which serve as a placeholder
+and should not be used in any way. I've added a bunch of assertions to exposing issues
+caused by using invalid device (Only when `VKZ_DEV` is on).
+
+> [!NOTE]
+> Each device class can define it's own meaning of "valid" by overriding `isValid`.
+> You can check whether this device is valid by calling `isValid`
+
+> [!IMPORTANT]
+> **DO NOT USE `GetDeviceID` for validation**.
+> Valve uses bit represented by id to toggle device active state.
+> Hence I consider calling `GetDeviceID` is a use of device.
 
 ### Networkable Suit Power Device
 
-Declare base device class as embedded network variable, and provide send table and receive table for it.
+Declare `CSuitPowerDevice` as embedded network variable, and provide send table and receive table for it.
 
 Usage:
 
-```cpp
-// server_class.h
+```c++
+// hl2_player.h (Server)
 
-// Declare server class member
-CNetworkVarEmbedded(CSprintDevice, m_SprintDevice);
-
-// ==================================
-
-// server_class.cpp
-
-// IMPLEMENT_SERVERCLASS_ST
+class CHL2_Player : public CBasePlayer
+{
     // ...
-    SendPropDataTable(SENDINFO_DT(m_SprintDevice), &REFERENCE_SEND_TABLE(DT_SprintDevice), SendProxy_SendLocalDataTable),
+private:
+    // Member definition
+    CNetworkVarEmbedded(CSprintDevice, m_SprintDevice);         // The sprint device player should CHECK_USENETWORKVARS
     // ...
-// END_SEND_TABLE
+}
 ```
 
-```cpp
-// client_class.h
+```c++
+// hl2_player.cpp
 
-// Declare client class member
-C_SprintDevice m_SprintDevice;
+IMPLEMENT_SERVERCLASS_ST(CHL2_Player, DT_HL2_Player)
+    // ...
+    // Don't send to other player
+    SendPropDataTable(SENDINFO_DT(m_SprintDevice), &REFERENCE_SEND_TABLE(DT_SprintDevice), SendProxy_SendLocalDataTable),
+    // ...
+END_SEND_TABLE()
+```
 
-// ==================================
+```c++
+// c_basehlplayer.h (Client)
 
-// client_class.cpp
+class C_BaseHLPlayer : public C_BasePlayer
+{
+    // ...
+public:
+    C_SprintDevice      m_SprintDevice;
+    // ...
+}
+```
 
-// IMPLEMENT_CLIENTCLASS_DT
+```c++
+// c_basehlplayer.cpp
+
+IMPLEMENT_CLIENTCLASS_DT(C_BaseHLPlayer, DT_HL2_Player, CHL2_Player)
     // ...
     RecvPropDataTable(RECVINFO_DT(m_SprintDevice),0, &REFERENCE_RECV_TABLE(DT_SprintDevice)),
     // ...
-// END_RECV_TABLE
+END_RECV_TABLE()
 ```
+
+
+## Useful informations
+
+- Compiles under C++ 20 (Tested on MSVC v145)
+- All code snippets can be turned on / off
+
+### Preprocessor Directives
+
+Each snippet has a macro to control whether to enable it. You can find the definitions and VPC flags in `vpc_script/source_base.vpc`.
+
+If you want to learn how a snippet is implemented, do a solution search (`Ctrl+Shift+F`) for snippet macro name.
+Essential blocks of code are conditional inclusion with `#ifdef`.
+
+### Knowledge
+
+You can check out my notes about the SDK in [knowledge.md](knowledge.md).
+
+There are also some notes in comments. You can find them by searching "VKZ Knowledge" in entire solution.
 
 ---
 
