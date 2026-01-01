@@ -216,6 +216,9 @@ Each snippet has a macro to control whether to enable it. You can find the defin
 If you want to learn how a snippet is implemented, do a solution search (`Ctrl+Shift+F`) for snippet macro name.
 Essential blocks of code are conditional inclusion with `#ifdef`.
 
+I suggest enabling `Colorize inactive preprocessor block differently` and `Colorize the matching start and end preprocessor tokens`
+in `Tools > Options`, since I use conditional directives heavily.
+
 ### Knowledge
 
 You can check out my notes about the SDK in [knowledge.md](knowledge.md).
