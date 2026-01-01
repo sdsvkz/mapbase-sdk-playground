@@ -23,6 +23,7 @@ $Project "Client (Playground)"
 {
 	$Folder	"Source Files"
 	{
+		// Files for new features
 		$Folder	"Playground"
 		{
 		}
@@ -33,10 +34,6 @@ $Project "Client (Playground)"
 
 		$Folder	"HL2 DLL"
 		{
-			// New files
-			$File	"$SRCDIR\game\shared\hl2\suit_power_device.cpp"
-			$File	"$SRCDIR\game\shared\hl2\suit_power_device.h"
-
 			$File	"$SRCDIR\game\shared\hl2\basehlcombatweapon_shared.cpp"
 			$File	"$SRCDIR\game\shared\episodic\achievements_ep1.cpp"
 			$File	"$SRCDIR\game\shared\episodic\achievements_ep2.cpp"

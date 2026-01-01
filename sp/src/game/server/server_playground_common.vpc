@@ -1,0 +1,26 @@
+//-----------------------------------------------------------------------------
+//	SERVER_PLAYGROUND_COMMON.VPC
+//
+//	Playground Additional Files
+//-----------------------------------------------------------------------------
+
+// Those files are most likely for enhancements
+$Project
+{
+	$Folder	"Source Files"
+	{
+		$Folder	"HL2 DLL"
+		{
+			$Folder "Suit Power Device"
+			{
+				$File	"$SRCDIR\game\shared\hl2\suit_power_device\suit_power_device.cpp"
+				$File	"$SRCDIR\game\shared\hl2\suit_power_device\suit_power_device.h"
+				$File	"$SRCDIR\game\shared\hl2\suit_power_device\sprint_device.cpp"
+				$File	"$SRCDIR\game\shared\hl2\suit_power_device\sprint_device.h"
+				$File	"$SRCDIR\game\shared\hl2\suit_power_device\suit_power_device_ops.h"
+				$File	"$SRCDIR\game\shared\hl2\suit_power_device\suit_power_device_defs.h"
+				$File	"$SRCDIR\game\shared\hl2\suit_power_device\suit_power_device_undefs.h"
+			}
+		}
+	}
+}

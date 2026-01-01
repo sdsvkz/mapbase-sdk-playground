@@ -14,7 +14,7 @@
 
 #include "c_baseplayer.h"
 #include "c_hl2_playerlocaldata.h"
-#include "suit_power_device.h"
+#include "suit_power_device/sprint_device.h"
 
 #if !defined( HL2MP ) && defined ( MAPBASE )
 #include "mapbase/mapbase_playeranimstate.h"

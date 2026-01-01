@@ -12,7 +12,8 @@
 
 #include "player.h"
 #include "hl2_playerlocaldata.h"
-#include "suit_power_device.h"
+#include "suit_power_device/suit_power_device.h"
+#include "suit_power_device/sprint_device.h"
 #include "simtimer.h"
 #include "soundenvelope.h"
 

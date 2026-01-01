@@ -53,8 +53,13 @@ Provided inputs to dynamically adjust drain rate and speed for sprinting.
 
 ##### `logic_playerproxy`
 
-- `SetSprintDrainRate(float drainRate)` - Set the drain rate of sprintng for this player, default for singleplayer is 12.5%/s.
-- `SetSprintSpeed(float speed)` - Set how fast this player runs (Unit/s), default is 320 Unit/s.
+- `SetSprintDrainRate(float drainRate)`
+
+> Set the drain rate of sprintng for this player, default for singleplayer is 12.5%/s.
+
+- `SetSprintSpeed(float speed)`
+
+> Set how fast this player runs (Unit/s), default is 320 Unit/s.
 
 #### Removed `hl2_sprintspeed`
 

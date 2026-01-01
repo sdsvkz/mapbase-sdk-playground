@@ -6,6 +6,7 @@
 
 #include "cbase.h"
 #include "hl2_player.h"
+#include "suit_power_device/suit_power_device_ops.h"
 #include "globalstate.h"
 #include "game.h"
 #include "gamerules.h"
