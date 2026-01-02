@@ -41,7 +41,6 @@ public:
 	// `m_bitsActiveDevices ^= ~x` means toggle device with id `x`
 	// Special values:
 	// 0 means all device is off
-	// 1 means all device is on
 	// `m_bitsActiveDevices == x` is true if only device with id `x` is on
 	CNetworkVar( int,	m_bitsActiveDevices );
 
