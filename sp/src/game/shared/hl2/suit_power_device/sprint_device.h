@@ -28,9 +28,9 @@ class CSprintDevice;
 namespace SuitPowerDevice {
 #ifdef VKZ_ADVANCED_SPRINT
 #ifdef CLIENT_DLL
-    using SprintDevice = C_SprintDevice;
+	using SprintDevice = C_SprintDevice;
 #else
-    using SprintDevice = CSprintDevice;
+	using SprintDevice = CSprintDevice;
 #endif
 #endif
 }
@@ -61,99 +61,96 @@ class CSprintDevice : public CSuitPowerDevice
 public:
 
 #ifdef CLIENT_DLL
-    static constexpr const char TypeName[] = "C_SprintDevice";
+	static constexpr const char TypeName[] = "C_SprintDevice";
 #else
-    static constexpr const char TypeName[] = "CSprintDevice";
+	static constexpr const char TypeName[] = "CSprintDevice";
 #endif
 
 #ifdef CLIENT_DLL
 
-    DECLARE_CLASS(C_SprintDevice, C_SuitPowerDevice);
+	DECLARE_CLASS(C_SprintDevice, C_SuitPowerDevice);
 
 #ifndef VKZ_NETWORKABLE_SUIT_POWER_DEVICE
 #error "VKZ_ADVANCED_SPRINT requires VKZ_NETWORKABLE_SUIT_POWER_DEVICE"
 #endif
-    DECLARE_EMBEDDED_NETWORKVAR();
+	DECLARE_EMBEDDED_NETWORKVAR();
 
-    C_SprintDevice()
-        : ThisClass(Default) {
-    }
+	C_SprintDevice()
+		: ThisClass(Default) {}
 
-    C_SprintDevice(float drainRate, float sprintSpeed = DEFAULT_SPRINT_SPEED)
-        : BaseClass(bits_SUIT_DEVICE_SPRINT, drainRate), m_flSprintSpeed(sprintSpeed) {
-    }
+	C_SprintDevice(float drainRate, float sprintSpeed = DEFAULT_SPRINT_SPEED)
+		: BaseClass(bits_SUIT_DEVICE_SPRINT, drainRate), m_flSprintSpeed(sprintSpeed) {}
 
 protected:
-    float m_flSprintSpeed;
+	float m_flSprintSpeed;
 
 #else
 
-    DECLARE_CLASS(CSprintDevice, CSuitPowerDevice);
+	DECLARE_CLASS(CSprintDevice, CSuitPowerDevice);
 
 #ifdef VKZ_DATADESC_SUIT_POWER_DEVICE
-    DECLARE_DATADESC();
+	DECLARE_DATADESC();
 #endif
 
 #ifndef VKZ_NETWORKABLE_SUIT_POWER_DEVICE
 #error "VKZ_ADVANCED_SPRINT requires VKZ_NETWORKABLE_SUIT_POWER_DEVICE"
 #endif
-    DECLARE_EMBEDDED_NETWORKVAR();
+	DECLARE_EMBEDDED_NETWORKVAR();
 
-    CSprintDevice()
-        : CSprintDevice(Default) {
-    }
+	CSprintDevice()
+		: CSprintDevice(Default) {}
 
-    CSprintDevice(float drainRate, float sprintSpeed = DEFAULT_SPRINT_SPEED)
-        : BaseClass(bits_SUIT_DEVICE_SPRINT, drainRate)
-    {
-        m_flSprintSpeed = sprintSpeed;
-    }
+	CSprintDevice(float drainRate, float sprintSpeed = DEFAULT_SPRINT_SPEED)
+		: BaseClass(bits_SUIT_DEVICE_SPRINT, drainRate)
+	{
+		m_flSprintSpeed = sprintSpeed;
+	}
 
 protected:
 #ifndef VKZ_NETWORKABLE_SUIT_POWER_DEVICE
 #error "VKZ_ADVANCED_SPRINT requires VKZ_NETWORKABLE_SUIT_POWER_DEVICE"
 #endif
-    CNetworkVar(float, m_flSprintSpeed);
+	CNetworkVar(float, m_flSprintSpeed);
 
 #endif
 
 public:
 
-    static const ThisClass Default;
+	static const ThisClass Default;
 
-    // For a sprint device, returns `true` only if device `id == bits_SUIT_DEVICE_SPRINT`
-    virtual bool isValid() const { return m_bitsDeviceID & bits_SUIT_DEVICE_SPRINT; }
+	// For a sprint device, returns `true` only if device `id == bits_SUIT_DEVICE_SPRINT`
+	virtual bool isValid() const { return m_bitsDeviceID & bits_SUIT_DEVICE_SPRINT; }
 
-    bool equals(const ThisClass& device) const {
-        return BaseClass::equals(device) && m_flSprintSpeed == device.m_flSprintSpeed;
-    }
+	bool equals(const ThisClass &device) const {
+		return BaseClass::equals(device) && m_flSprintSpeed == device.m_flSprintSpeed;
+	}
 
-    virtual void toString(std::unique_ptr<char[]>& pDest) const {
-        Q_snprintf(pDest.get(), 1024,
-            "{\n"
-            "\tid: %d,\n"
-            "\tdrainRate: %.2f,\n"
-            "\tsprintSpeed: %.2f,\n"
-            "}",
-            m_bitsDeviceID,
-            static_cast<float>(m_flDrainRate),
-            static_cast<float>(m_flSprintSpeed)
-        );
-    }
+	virtual void toString(std::unique_ptr<char[]> &pDest) const {
+		Q_snprintf(pDest.get(), 1024,
+			"{\n"
+			"\tid: %d,\n"
+			"\tdrainRate: %.2f,\n"
+			"\tsprintSpeed: %.2f,\n"
+			"}",
+			m_bitsDeviceID,
+			static_cast<float>(m_flDrainRate),
+			static_cast<float>(m_flSprintSpeed)
+		);
+	}
 
-    virtual float getSprintSpeed() const
-    {
-        validate();
-        return m_flSprintSpeed;
-    }
+	virtual float getSprintSpeed() const
+	{
+		validate();
+		return m_flSprintSpeed;
+	}
 
-    virtual void setSprintSpeed(float speed) {
-        m_flSprintSpeed = speed;
-    }
+	virtual void setSprintSpeed(float speed) {
+		m_flSprintSpeed = speed;
+	}
 
-    virtual void resetDrainRate() {
-        setSprintSpeed(DEFAULT_SPRINT_DRAIN_RATE);
-    }
+	virtual void resetDrainRate() {
+		setSprintSpeed(DEFAULT_SPRINT_DRAIN_RATE);
+	}
 
 #if !defined(CLIENT_DLL) && defined(VKZ_RESTORABLE_SUIT_POWER_DEVICE)
 public:
@@ -161,23 +158,23 @@ public:
 #error "VKZ_ADVANCED_SPRINT requires VKZ_RESTORABLE_SUIT_POWER_DEVICE"
 #endif
 
-    DEFINE_DEVICE_SAVE(fieldInfo, pSave) {
-        pSave->WriteFloat(&m_flSprintSpeed.Get());
-        BaseClass::WriteSelfExceptId(fieldInfo, pSave);
-    }
+	DEFINE_DEVICE_SAVE(fieldInfo, pSave) {
+		pSave->WriteFloat(&m_flSprintSpeed.Get());
+		BaseClass::WriteSelfExceptId(fieldInfo, pSave);
+	}
 
-    DEFINE_DEVICE_RESTORE(fieldInfo, pRestore) {
-        float sprintSpeed;
-        // Careful with ordering
-        pRestore->ReadFloat(&sprintSpeed);
-        const auto& baseDeviceData = BaseClass::ReadExceptId(fieldInfo, pRestore);
-        const auto drainRate = std::get<0>(baseDeviceData);
-        return ThisClass(drainRate, sprintSpeed);
-    };
+	DEFINE_DEVICE_RESTORE(fieldInfo, pRestore) {
+		float sprintSpeed;
+		// Careful with ordering
+		pRestore->ReadFloat(&sprintSpeed);
+		const auto &baseDeviceData = BaseClass::ReadExceptId(fieldInfo, pRestore);
+		const auto drainRate = std::get<0>(baseDeviceData);
+		return ThisClass(drainRate, sprintSpeed);
+	};
 #endif
 
 public:
-    using SprintSpeedType = decltype(ThisClass::m_flSprintSpeed);
+	using SprintSpeedType = decltype(ThisClass::m_flSprintSpeed);
 };
 
 #ifdef CLIENT_DLL
