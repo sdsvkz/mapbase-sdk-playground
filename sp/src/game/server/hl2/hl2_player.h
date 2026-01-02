@@ -147,15 +147,56 @@ public:
 	// Suit Power Interface
 	void SuitPower_Update( void );
 	bool SuitPower_Drain( float flPower ); // consume some of the suit's power.
-	void SuitPower_Charge( float flPower ); // add suit power.
-	void SuitPower_SetCharge( float flPower ) { m_HL2Local.m_flSuitPower = flPower; }
+	bool SuitPower_Charge( float flPower ); // add suit power (with maximum check).
+	/**
+	 * @brief Suit power setter
+	 * 
+	 * @param flPower new suit power
+	 */
+	void SuitPower_SetCharge( float flPower ) { m_HL2Local.m_flSuitPower = flPower; } // Direct setter, no maximum check
 	void SuitPower_Initialize( void );
-	bool SuitPower_IsDeviceActive( const CSuitPowerDevice &device );
+	bool SuitPower_IsDeviceActive(int bitsDeviceID) const {
+		return (m_HL2Local.m_bitsActiveDevices & bitsDeviceID) != 0;
+	}
+	// Only ID is used
+	bool SuitPower_IsDeviceActive(const CSuitPowerDevice &device) const {
+		return SuitPower_IsDeviceActive(device.GetDeviceID());
+	}
+	bool SuitPower_IsOnlyActiveDevice(int bitsDeviceID) const {
+		return m_HL2Local.m_bitsActiveDevices == bitsDeviceID;
+	}
+	// Only ID is used
+	bool SuitPower_IsOnlyActiveDevice(const CSuitPowerDevice &device) const {
+		return SuitPower_IsOnlyActiveDevice(device.GetDeviceID());
+	}
+	bool SuitPower_HasActiveDevice() const { return m_HL2Local.m_bitsActiveDevices != 0; }
 	bool SuitPower_AddDevice( const CSuitPowerDevice &device );
 	bool SuitPower_RemoveDevice( const CSuitPowerDevice &device );
+	bool SuitPower_IsDraining() const {
+#ifdef VKZ_ADVANCED_SPRINT
+		// Ignore the case that only sprint is active if it doesn't drain power
+		if (!m_SprintDevice.doesDrainPower()) {
+			return SuitPower_HasActiveDevice() && !SuitPower_IsOnlyActiveDevice(bits_SUIT_DEVICE_SPRINT);
+		} else
+#endif
+		{
+			// Assuming all device drain power
+			return SuitPower_HasActiveDevice();
+		}
+	}
 	bool SuitPower_ShouldRecharge( void );
-	float SuitPower_GetCurrentPercentage( void ) { return m_HL2Local.m_flSuitPower; }
-	
+	float SuitPower_GetCurrentPercentage( void ) const { return m_HL2Local.m_flSuitPower; }
+protected:
+	void SuitPower_ActivateDevice(const CSuitPowerDevice &device) {
+		m_HL2Local.m_bitsActiveDevices |= device.GetDeviceID();
+		m_flSuitPowerLoad += device.GetDeviceDrainRate();
+	}
+	void SuitPower_DeactiveDevice(const CSuitPowerDevice &device) {
+		m_HL2Local.m_bitsActiveDevices &= ~device.GetDeviceID();
+		m_flSuitPowerLoad -= device.GetDeviceDrainRate();
+	}
+public:
+
 	// Suit Power Device
 
 #ifdef VKZ_ADVANCED_SPRINT
@@ -222,7 +263,7 @@ public:
 	void StartSprinting( void );
 	void StopSprinting( void );
 	void InitSprinting( void );
-	bool IsSprinting( void ) { return m_fIsSprinting; }
+	bool IsSprinting( void ) const { return m_fIsSprinting; }
 	bool CanSprint( void );
 	void EnableSprint( bool bEnable);
 
@@ -242,7 +283,7 @@ public:
 	// Walking
 	void StartWalking( void );
 	void StopWalking( void );
-	bool IsWalking( void ) { return m_fIsWalking; }
+	bool IsWalking( void ) const { return m_fIsWalking; }
 
 	// Aiming heuristics accessors
 	virtual float		GetIdleTime( void ) const { return ( m_flIdleTime - m_flMoveTime ); }
@@ -312,7 +353,7 @@ public:
 
 	// Underwater breather device
 	virtual void		SetPlayerUnderwater( bool state );
-	virtual bool		CanBreatheUnderwater() const { return m_HL2Local.m_flSuitPower > 0.0f; }
+	virtual bool		CanBreatheUnderwater() const { return SuitPower_GetCurrentPercentage() > 0.0f; }
 
 	// physics interactions
 	virtual void		PickupObject( CBaseEntity *pObject, bool bLimitMassAndSize );
@@ -399,6 +440,9 @@ private:
 	//  the player and not to other players.
 	CNetworkVarEmbedded( CHL2PlayerLocalData, m_HL2Local );
 
+	// I checked all the references of this field.
+	// Honestly, it should called `m_flTimeNotDraining`
+	// The only use of it, is adding a little delay before start charging aux power
 	float				m_flTimeAllSuitDevicesOff;
 
 	bool					m_bSprintEnabled;		// Used to disable sprint temporarily

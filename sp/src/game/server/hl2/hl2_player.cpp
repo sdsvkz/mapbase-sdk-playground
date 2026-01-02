@@ -1768,7 +1768,7 @@ void CHL2_Player::StartSprinting( void )
         // Skip minimal power check if doesn't drain power
         device.doesDrainPower() &&
 #endif
-        m_HL2Local.m_flSuitPower < 10
+        SuitPower_GetCurrentPercentage() < 10
         )
     {
         // Don't sprint unless there's a reasonable
@@ -1818,11 +1818,11 @@ void CHL2_Player::StartSprinting( void )
 void CHL2_Player::StopSprinting( void )
 {
 #ifdef VKZ_ADVANCED_SPRINT
-    if ( m_HL2Local.m_bitsActiveDevices & bits_SUIT_DEVICE_SPRINT ) {
-        SuitPower_RemoveDevice( m_SprintDevice );
+    if (SuitPower_IsDeviceActive(bits_SUIT_DEVICE_SPRINT)) {
+        SuitPower_RemoveDevice(m_SprintDevice);
     }
 #else
-    if ( m_HL2Local.m_bitsActiveDevices & SuitDeviceSprint.GetDeviceID() )
+    if ( SuitPower_IsDeviceActive( bits_SUIT_DEVICE_SPRINT ) )
     {
         SuitPower_RemoveDevice( SuitDeviceSprint );
     }
@@ -1881,7 +1881,7 @@ void CHL2_Player::useSprintDevice(const CSprintDevice& device) {
         return;
     }
 
-    if (m_HL2Local.m_bitsActiveDevices & bits_SUIT_DEVICE_SPRINT)
+    if (SuitPower_IsDeviceActive(bits_SUIT_DEVICE_SPRINT))
     {
         StopSprinting();
         m_SprintDevice.CopyFrom(device);
@@ -2577,121 +2577,117 @@ void CHL2_Player::SetupVisibility( CBaseEntity *pViewEntity, unsigned char *pvs,
 //-----------------------------------------------------------------------------
 void CHL2_Player::SuitPower_Update( void )
 {
-    if( SuitPower_ShouldRecharge() )
-    {
+    if ( SuitPower_ShouldRecharge() ) {
         SuitPower_Charge( SUITPOWER_CHARGE_RATE * gpGlobals->frametime );
+        return;
     }
-    // Is there any device draining power?
-    else if (
-        m_HL2Local.m_bitsActiveDevices
-#ifdef VKZ_ADVANCED_SPRINT
-        // Ignore the case that only sprint is active if it doesn't drain power
-        && (!m_SprintDevice.doesDrainPower()
-            ? m_HL2Local.m_bitsActiveDevices != bits_SUIT_DEVICE_SPRINT
-            : true)
-#endif
-        )
-    {
-        // How much power should be drained?
-        // Initially it is the total of all active device's drain rates
-        // You can increase or decrease the drain rate based on other condition
-        float flPowerLoad = m_flSuitPowerLoad;
 
-#ifdef VKZ_ALWAYS_RUN
-        bool needStopSprinting = false;
-#endif
-
-#ifdef VKZ_ADVANCED_SPRINT
-        // Current sprint device
-        const auto& sprintDevice = m_SprintDevice;
-#endif
-
-        // Don't drain power (and recharge) if player is sprinting but not moving
-        if (
-#ifdef VKZ_ADVANCED_SPRINT
-            // No need to do this if it doesn't drain power
-            sprintDevice.doesDrainPower() &&
-#endif
-            // Since stickysprint quickly shuts off sprint if it isn't being used, this isn't an issue.
-            !sv_stickysprint.GetBool()
-            )
-        {
-#ifdef VKZ_ADVANCED_SPRINT
-            if (SuitPower_IsDeviceActive(sprintDevice))
-#else
-            if( SuitPower_IsDeviceActive(SuitDeviceSprint) )
-#endif
-            {
-                // If player's not moving, don't drain sprint juice.
-                if( !isMovingHorizontally() )
-                {
-                    flPowerLoad -=
-#ifdef VKZ_ADVANCED_SPRINT
-                        sprintDevice.GetDeviceDrainRate();
-#else
-                        SuitDeviceSprint.GetDeviceDrainRate();
-#endif
-
-#ifdef VKZ_ALWAYS_RUN
-                    // You can stop to charge when always run is enabled
-                    needStopSprinting = isAlwaysRunEnabled();
-#endif
-                }
-            }
-        }
-
-        if( SuitPower_IsDeviceActive(SuitDeviceFlashlight) )
-        {
-            float factor;
-
-            factor = 1.0f / m_flFlashlightPowerDrainScale;
-
-            flPowerLoad -= ( SuitDeviceFlashlight.GetDeviceDrainRate() * (1.0f - factor) );
-        }
-
-        if( !SuitPower_Drain( flPowerLoad * gpGlobals->frametime ) )
-        {
-            // TURN OFF ALL DEVICES!!
-
-            if(
-                IsSprinting()
-#ifdef VKZ_ADVANCED_SPRINT
-                // No need to turn off sprint if it doesn't drain power
-                && sprintDevice.doesDrainPower()
-#endif
-                )
-            {
-                StopSprinting();
-            }
-
-            if ( Flashlight_UseLegacyVersion() )
-            {
-                if( FlashlightIsOn() )
-                {
-#ifndef HL2MP
-                    FlashlightTurnOff();
-#endif
-                }
-            }
-        }
-
-        if ( Flashlight_UseLegacyVersion() )
-        {
-            // turn off flashlight a little bit after it hits below one aux power notch (5%)
-            if( m_HL2Local.m_flSuitPower < 4.8f && FlashlightIsOn() )
-            {
-#ifndef HL2MP
-                FlashlightTurnOff();
-#endif
-            }
-        }
-
-#ifdef VKZ_ALWAYS_RUN
-        if (needStopSprinting && IsSprinting()) {
-            StopSprinting();
-        }
-#endif
+    // Only drain power if there is device using power
+    if (!SuitPower_IsDraining()) {
+        return;
     }
+
+    // =========== Drain ===========
+
+	// How much power should be drained?
+	// Initially it is the total of all active device's drain rates
+	// You can increase or decrease the drain rate based on other condition
+	float flPowerLoad = m_flSuitPowerLoad;
+
+#ifdef VKZ_ALWAYS_RUN
+	bool needStopSprinting = false;
+#endif
+
+#ifdef VKZ_ADVANCED_SPRINT
+	// Current sprint device
+	const auto &sprintDevice = m_SprintDevice;
+#endif
+
+	// Don't drain power (and recharge) if player is sprinting but not moving
+	if (
+#ifdef VKZ_ADVANCED_SPRINT
+		// No need to do this if it doesn't drain power
+		sprintDevice.doesDrainPower() &&
+#endif
+		// Since stickysprint quickly shuts off sprint if it isn't being used, this isn't an issue.
+		!sv_stickysprint.GetBool()
+		)
+	{
+#ifdef VKZ_ADVANCED_SPRINT
+		if (SuitPower_IsDeviceActive(bits_SUIT_DEVICE_SPRINT))
+#else
+		if (SuitPower_IsDeviceActive(bits_SUIT_DEVICE_SPRINT))
+#endif
+		{
+			// If player's not moving, don't drain sprint juice.
+			if (!isMovingHorizontally())
+			{
+				flPowerLoad -=
+#ifdef VKZ_ADVANCED_SPRINT
+					sprintDevice.GetDeviceDrainRate();
+#else
+					SuitDeviceSprint.GetDeviceDrainRate();
+#endif
+
+#ifdef VKZ_ALWAYS_RUN
+				// You can stop to charge when always run is enabled
+				needStopSprinting = isAlwaysRunEnabled();
+#endif
+			}
+		}
+	}
+
+	if (SuitPower_IsDeviceActive(bits_SUIT_DEVICE_FLASHLIGHT))
+	{
+		float factor;
+
+		factor = 1.0f / m_flFlashlightPowerDrainScale;
+
+		flPowerLoad -= (SuitDeviceFlashlight.GetDeviceDrainRate() * (1.0f - factor));
+	}
+
+	if (!SuitPower_Drain(flPowerLoad * gpGlobals->frametime))
+	{
+		// TURN OFF ALL DEVICES!!
+
+		if (
+			IsSprinting()
+#ifdef VKZ_ADVANCED_SPRINT
+			// No need to turn off sprint if it doesn't drain power
+			&& sprintDevice.doesDrainPower()
+#endif
+			)
+		{
+			StopSprinting();
+		}
+
+		if (Flashlight_UseLegacyVersion())
+		{
+			if (FlashlightIsOn())
+			{
+#ifndef HL2MP
+				FlashlightTurnOff();
+#endif
+			}
+		}
+	}
+
+	if (Flashlight_UseLegacyVersion())
+	{
+		// turn off flashlight a little bit after it hits below one aux power notch (5%)
+		if (SuitPower_GetCurrentPercentage() < 4.8f && FlashlightIsOn())
+		{
+#ifndef HL2MP
+			FlashlightTurnOff();
+#endif
+		}
+	}
+
+#ifdef VKZ_ALWAYS_RUN
+	if (needStopSprinting && IsSprinting()) {
+		StopSprinting();
+	}
+#endif
 }
 
 
@@ -2723,39 +2719,41 @@ bool CHL2_Player::SuitPower_Drain( float flPower )
         return true;
     }
 
-    m_HL2Local.m_flSuitPower -= flPower;
+    const auto newSuitPower = SuitPower_GetCurrentPercentage() - flPower;
 
-    if( m_HL2Local.m_flSuitPower < 0.0 )
-    {
+    if (newSuitPower < 0.0f) {
         // Power is depleted!
         // Clamp and fail
-        m_HL2Local.m_flSuitPower = 0.0;
+        SuitPower_SetCharge(0.0f);
         return false;
+    } else {
+        SuitPower_SetCharge(newSuitPower);
+        return true;
     }
-
-    return true;
 }
 
 //-----------------------------------------------------------------------------
 // Purpose: Interface to add power to the suit's power supply
 // Input:	Amount of charge to add
+// Output:	Returns FALSE if hit maximum
 //-----------------------------------------------------------------------------
-void CHL2_Player::SuitPower_Charge( float flPower )
+bool CHL2_Player::SuitPower_Charge( float flPower )
 {
-    m_HL2Local.m_flSuitPower += flPower;
-
-    if( m_HL2Local.m_flSuitPower > 100.0 )
-    {
-        // Full charge, clamp.
-        m_HL2Local.m_flSuitPower = 100.0;
+    // Skip if it doesn't change power
+    if (flPower == 0.0f) {
+        return true;
     }
-}
 
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-bool CHL2_Player::SuitPower_IsDeviceActive( const CSuitPowerDevice &device )
-{
-    return (m_HL2Local.m_bitsActiveDevices & device.GetDeviceID()) != 0;
+    const auto newSuitPower = SuitPower_GetCurrentPercentage() + flPower;
+
+    if ( newSuitPower > 100.0f ) {
+        // Full charge, clamp.
+        SuitPower_SetCharge(100.0f);
+        return false;
+    } else {
+        SuitPower_SetCharge(newSuitPower);
+        return true;
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -2779,14 +2777,13 @@ bool CHL2_Player::SuitPower_AddDevice( const CSuitPowerDevice &device )
 #endif
 
     // Make sure this device is NOT active!!
-    if( m_HL2Local.m_bitsActiveDevices & device.GetDeviceID() )
+    if( SuitPower_IsDeviceActive(device) )
         return false;
 
     if( !IsSuitEquipped() )
         return false;
 
-    m_HL2Local.m_bitsActiveDevices |= device.GetDeviceID();
-    m_flSuitPowerLoad += device.GetDeviceDrainRate();
+    SuitPower_ActivateDevice(device);
 #ifdef VKZ_ADVANCED_SPRINT
     if (device.GetDeviceID() & bits_SUIT_DEVICE_SPRINT) {
         // Set sprint device
@@ -2822,7 +2819,7 @@ bool CHL2_Player::SuitPower_RemoveDevice( const CSuitPowerDevice &device )
 #endif
 
     // Make sure this device is active!!
-    if( ! (m_HL2Local.m_bitsActiveDevices & device.GetDeviceID()) )
+    if( !SuitPower_IsDeviceActive(device) )
         return false;
 
     if( !IsSuitEquipped() )
@@ -2834,12 +2831,11 @@ bool CHL2_Player::SuitPower_RemoveDevice( const CSuitPowerDevice &device )
     // against exploits where the player could rapidly tap sprint and never run out of power.
     SuitPower_Drain( device.GetDeviceDrainRate() * 0.1f );
 
-    m_HL2Local.m_bitsActiveDevices &= ~device.GetDeviceID();
-    m_flSuitPowerLoad -= device.GetDeviceDrainRate();
+    SuitPower_DeactiveDevice(device);
 
-    if( m_HL2Local.m_bitsActiveDevices == 0x00000000 )
+    if( !SuitPower_IsDraining() )
     {
-        // With this device turned off, we can set this timer which tells us when the
+        // With no device using power, we can set this timer which tells us when the
         // suit power system entered a no-load state.
         m_flTimeAllSuitDevicesOff = gpGlobals->curtime;
     }
@@ -2852,22 +2848,14 @@ bool CHL2_Player::SuitPower_RemoveDevice( const CSuitPowerDevice &device )
 #define SUITPOWER_BEGIN_RECHARGE_DELAY	0.5f
 bool CHL2_Player::SuitPower_ShouldRecharge( void )
 {
-    // Make sure all devices are off.
-    if (
-        m_HL2Local.m_bitsActiveDevices
-#ifdef VKZ_ADVANCED_SPRINT
-        // Ignore the case that only sprint is active if it doesn't drain power
-        && (!m_SprintDevice.doesDrainPower()
-            ? m_HL2Local.m_bitsActiveDevices != bits_SUIT_DEVICE_SPRINT
-            : true)
-#endif
-        )
+    // Make sure all devices are off (Not draining).
+    if (SuitPower_IsDraining())
     {
         return false;
     }
 
     // Is the system fully charged?
-    if( m_HL2Local.m_flSuitPower >= 100.0f )
+    if( SuitPower_GetCurrentPercentage() >= 100.0f)
         return false;
 
     // Has the system been in a no-load state for long enough
@@ -2948,7 +2936,7 @@ void CHL2_Player::FlashlightTurnOn( void )
     EmitSound( "HL2Player.FlashLightOn" );
 
     variant_t flashlighton;
-    flashlighton.SetFloat( m_HL2Local.m_flSuitPower / 100.0f );
+    flashlighton.SetFloat( SuitPower_GetCurrentPercentage() / 100.0f );
     FirePlayerProxyOutput( "OnFlashlightOn", flashlighton, this, this );
 }
 
@@ -2967,7 +2955,7 @@ void CHL2_Player::FlashlightTurnOff( void )
     EmitSound( "HL2Player.FlashLightOff" );
 
     variant_t flashlightoff;
-    flashlightoff.SetFloat( m_HL2Local.m_flSuitPower / 100.0f );
+    flashlightoff.SetFloat( SuitPower_GetCurrentPercentage() / 100.0f );
     FirePlayerProxyOutput( "OnFlashlightOff", flashlightoff, this, this );
 }
 
