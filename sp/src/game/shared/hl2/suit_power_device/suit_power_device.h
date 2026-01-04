@@ -1,8 +1,6 @@
 ﻿#ifndef SUIT_POWER_DEVICE_H
 #define SUIT_POWER_DEVICE_H
-#ifdef _WIN32
 #pragma once
-#endif
 
 #include "gamerules.h"
 #include "shareddefs.h"
@@ -10,7 +8,7 @@
 #include <memory>
 #include <concepts>
 
-#ifdef VKZ_RESTORABLE_SUIT_POWER_DEVICE
+#if !defined(CLIENT_DLL) && defined(VKZ_RESTORABLE_SUIT_POWER_DEVICE)
 #include "isaverestore.h"
 #include <tuple>
 #endif
@@ -41,7 +39,7 @@ namespace SuitPowerDevice {
 	};
 #endif
 
-#ifdef VKZ_RESTORABLE_SUIT_POWER_DEVICE
+#if !defined(CLIENT_DLL) && defined(VKZ_RESTORABLE_SUIT_POWER_DEVICE)
 	template<typename T>
 	concept RestorableSuitPowerDevice = requires(const SaveRestoreFieldInfo_t & fieldInfo, IRestore * pRestore, const T & device) {
 		{ T::Read(fieldInfo, pRestore) } -> std::same_as<T>;
@@ -51,10 +49,10 @@ namespace SuitPowerDevice {
 	template<typename T>
 	concept SuitPowerDevice =
 		std::derived_from<T, BaseDevice>
-#ifdef VKZ_RESTORABLE_SUIT_POWER_DEVICE
+#if !defined(CLIENT_DLL) && defined(VKZ_RESTORABLE_SUIT_POWER_DEVICE)
 		&& RestorableSuitPowerDevice<T>
 #endif
-		&& std::convertible_to<decltype(T::TypeName), const char *>;
+		&& std::same_as<std::decay_t<decltype(T::TypeName)>, const char *>;
 }
 
 #ifdef CLIENT_DLL
@@ -170,23 +168,37 @@ public:
 	static const ThisClass Invalid;
 
 	// For a basic device, valid means `id != bits_SUIT_DEVICE_INVALID`
+	// Use `validate` if additional logging is needed
 	virtual bool isValid() const {
 		return !(m_bitsDeviceID & bits_SUIT_DEVICE_INVALID);
 	}
 #endif
 
-	void validate() const {
+	/**
+	 * @brief check whether device is valid, warn if not
+	 * @return `true` if valid
+	 */
+	bool validate() const {
 #ifdef VKZ_INVALID_SUIT_POWER_DEVICE
-#ifdef VKZ_DEV
-		Assert(isValid());
-#else
 		if (!isValid()) {
+#ifdef _DEBUG
 			auto deviceStr = std::make_unique<char[]>(1024);
 			toString(deviceStr);
-			DevWarning("Invalid device used: %s\n", deviceStr.get());
+			constexpr const char MESSAGE_FORMAT[] = "Validation failed: Invalid suit power device %s\n";
+#ifdef VKZ_DEV
+			AssertMsg(false, MESSAGE_FORMAT, deviceStr.get());
+#else
+			DevWarning(MESSAGE_FORMAT, deviceStr.get());
+#endif
+#else
+			DevWarning("Validation failed: Invalid suit power device.\n");
+#endif
+			return false;
+		} else
+#endif
+		{
+			return true;
 		}
-#endif
-#endif
 	}
 
 	virtual bool isSameCategory(const ThisClass &device) const {
@@ -327,13 +339,13 @@ namespace SuitPowerDevice {
 	 * @return
 	 */
 	template<SuitPowerDevice::SuitPowerDevice Device>
-	const Device &deviceCast(const SuitPowerDevice::BaseDevice &device) {
+	inline const Device &deviceCast(const SuitPowerDevice::BaseDevice &device) {
 		try {
 			return dynamic_cast<const Device &>(device);
 		} catch (const std::bad_cast &e) {
 			auto deviceStr = std::make_unique<char[]>(1024);
 			device.toString(deviceStr);
-			DevWarning("Device is not a %s: %s\ne.what(): %s\n", static_cast<const char *>(Device::TypeName), deviceStr.get(), e.what());
+			DevWarning("Device is not a %s: %s\ne.what(): %s\n", Device::TypeName, deviceStr.get(), e.what());
 			throw e;
 		}
 	}
@@ -346,7 +358,7 @@ namespace SuitPowerDevice {
 	 * @return
 	 */
 	template<SuitPowerDevice::SuitPowerDevice Device>
-	Device &deviceCast(SuitPowerDevice::BaseDevice &device) {
+	inline Device &deviceCast(SuitPowerDevice::BaseDevice &device) {
 		return const_cast<Device &>(deviceCast<Device>(std::as_const(device)));
 	}
 }

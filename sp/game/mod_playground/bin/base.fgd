@@ -9485,6 +9485,8 @@
 
 	input SetSprintDrainRate(float)				: "Sets the drain rate for HEV suit's sprint device"
 	input SetSprintSpeed(float)				: "Sets the speed for HEV suit's sprint device"
+
+	input SetBreatherDrainRate(float)			: "Sets the drain rate for HEV suit's breather device"
 ]
 
 @PointClass base(Targetname) iconsprite("editor/logic_playerinfo.vmt") = logic_playerinfo : 

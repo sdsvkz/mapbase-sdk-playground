@@ -302,6 +302,10 @@ public:
     void InputSetSprintSpeed(inputdata_t& inputdata);
 #endif
 
+#ifdef VKZ_ADVANCED_BREATHER
+    void InputSetBreatherDrainRate(inputdata_t &inputdata);
+#endif
+
     void Activate ( void );
 
 #ifdef MAPBASE
@@ -577,11 +581,12 @@ BEGIN_DATADESC( CHL2_Player )
     // Suit power fields
     DEFINE_FIELD( m_flSuitPowerLoad, FIELD_FLOAT ),
 
-#ifdef VKZ_ADVANCED_SPRINT
-
+    // Suit Power Devices
+#if defined(VKZ_ADVANCED_SPRINT) || defined(VKZ_ADVANCED_BREATHER)
 #if !defined(VKZ_DATADESC_SUIT_POWER_DEVICE) && !defined(VKZ_RESTORABLE_SUIT_POWER_DEVICE)
-    #error "VKZ_ADVANCED_SPRINT requires VKZ_DATADESC_SUIT_POWER_DEVICE or VKZ_RESTORABLE_SUIT_POWER_DEVICE"
-#elif defined(VKZ_RESTORABLE_SUIT_POWER_DEVICE) && !defined(VKZ_EMBEDDED_SPRINT_DEVICE_FIELD)
+#error "VKZ_DATADESC_SUIT_POWER_DEVICE or VKZ_RESTORABLE_SUIT_POWER_DEVICE required"
+#else
+#if defined(VKZ_ADVANCED_SPRINT) && defined(VKZ_RESTORABLE_SUIT_POWER_DEVICE) && !defined(VKZ_EMBEDDED_SPRINT_DEVICE_FIELD)
     // VKZ Knowledge (Simple custom field for DATADESC table):
     // Note that It's valid to do this even when `m_SprintDevice` is a network variable
     // This is because it's type is derived from `CSprintDevice`
@@ -592,7 +597,12 @@ BEGIN_DATADESC( CHL2_Player )
     // VKZ Knowledge (Simple embedded field for DATADESC table)
     DEFINE_EMBEDDED(m_SprintDevice),
 #endif
-
+#if defined(VKZ_ADVANCED_BREATHER) && defined(VKZ_RESTORABLE_SUIT_POWER_DEVICE) && !defined(VKZ_EMBEDDED_BREATHER_DEVICE_FIELD)
+    DEFINE_CUSTOM_FIELD(m_BreatherDevice, CSuitPowerDeviceDataOps<CBreatherDevice>::Get()),
+#else
+    DEFINE_EMBEDDED(m_BreatherDevice),
+#endif
+#endif
 #endif
 
     DEFINE_FIELD( m_flIdleTime, FIELD_TIME ),
@@ -703,7 +713,10 @@ END_SCRIPTDESC();
 #else
     CSuitPowerDevice SuitDeviceFlashlight(bits_SUIT_DEVICE_FLASHLIGHT, 2.222);	// 100 units in 45 second
 #endif
-    CSuitPowerDevice SuitDeviceBreather(bits_SUIT_DEVICE_BREATHER, 6.7f);		// 100 units in 15 seconds (plus three padded seconds)
+
+#ifndef VKZ_ADVANCED_BREATHER
+    CSuitPowerDevice SuitDeviceBreather(bits_SUIT_DEVICE_BREATHER, DEFAULT_BREATHER_DRAIN_RATE);		// 100 units in 15 seconds (plus three padded seconds)
+#endif
 
 #ifdef MAPBASE
     // Default: 100 units in 8 seconds
@@ -727,16 +740,15 @@ CHL2_Player::CHL2_Player()
 #ifdef MAPBASE
     m_nProtagonistIndex = -1;
 #endif
-
-#if defined(VKZ_ADVANCED_SPRINT)
-    m_SprintDevice.CopyFrom(CSprintDevice::Default);
-#endif
 }
 
 IMPLEMENT_SERVERCLASS_ST(CHL2_Player, DT_HL2_Player)
     SendPropDataTable(SENDINFO_DT(m_HL2Local), &REFERENCE_SEND_TABLE(DT_HL2Local), SendProxy_SendLocalDataTable),
 #ifdef VKZ_ADVANCED_SPRINT
     SendPropDataTable(SENDINFO_DT(m_SprintDevice), &REFERENCE_SEND_TABLE(DT_SprintDevice), SendProxy_SendLocalDataTable),
+#endif
+#ifdef VKZ_ADVANCED_BREATHER
+    SendPropDataTable(SENDINFO_DT(m_BreatherDevice), &REFERENCE_SEND_TABLE(DT_BreatherDevice), SendProxy_SendLocalDataTable),
 #endif
     SendPropBool( SENDINFO(m_fIsSprinting) ),
 #ifdef MAPBASE
@@ -1817,16 +1829,13 @@ void CHL2_Player::StartSprinting( void )
 //-----------------------------------------------------------------------------
 void CHL2_Player::StopSprinting( void )
 {
-#ifdef VKZ_ADVANCED_SPRINT
     if (SuitPower_IsDeviceActive(bits_SUIT_DEVICE_SPRINT)) {
+#ifdef VKZ_ADVANCED_SPRINT
         SuitPower_RemoveDevice(m_SprintDevice);
-    }
 #else
-    if ( SuitPower_IsDeviceActive( bits_SUIT_DEVICE_SPRINT ) )
-    {
         SuitPower_RemoveDevice( SuitDeviceSprint );
-    }
 #endif
+    }
 
     if( IsSuitEquipped() )
     {
@@ -1862,35 +1871,42 @@ void CHL2_Player::EnableSprint( bool bEnable )
 }
 
 #ifdef VKZ_ADVANCED_SPRINT
-//-----------------------------------------------------------------------------
-// Purpose: Use a sprint device with new drain rate
-//-----------------------------------------------------------------------------
-void CHL2_Player::useSprintDevice(const CSprintDevice& device) {
-    if (!device.isValid()) {
-#ifdef _DEBUG
-        auto deviceStr = std::make_unique<char[]>(1024);
-        device.toString(deviceStr);
-        Warning("Trying to set sprint device to invalid device: %s\nIgnored.\n", deviceStr.get());
-#else
-        Warning("Trying to set sprint device to invalid device, ignored\n");
-#endif
+void CHL2_Player::useSprintDevice(const CSprintDevice &device) {
+    if (!device.validate()) {
         return;
     }
 
-    if (m_SprintDevice.equals(device)) {
-        return;
-    }
+	if (m_SprintDevice.equals(device)) {
+		return;
+	}
 
-    if (SuitPower_IsDeviceActive(bits_SUIT_DEVICE_SPRINT))
-    {
+    if (SuitPower_IsDeviceActive(bits_SUIT_DEVICE_SPRINT)) {
         StopSprinting();
         m_SprintDevice.CopyFrom(device);
         StartSprinting();
-    }
-    else
-    {
+    } else {
         m_SprintDevice.CopyFrom(device);
     }
+}
+#endif
+
+#ifdef VKZ_ADVANCED_BREATHER
+void CHL2_Player::useBreatherDevice(const CBreatherDevice &device) {
+    if (!device.validate()) {
+        return;
+    }
+
+    if (m_BreatherDevice.equals(device)) {
+        return;
+	}
+
+	if (SuitPower_IsDeviceActive(bits_SUIT_DEVICE_BREATHER)) {
+		SuitPower_RemoveDevice(m_BreatherDevice);
+		m_BreatherDevice.CopyFrom(device);
+        SuitPower_AddDevice(m_BreatherDevice);
+	} else {
+		m_BreatherDevice.CopyFrom(device);
+	}
 }
 #endif
 
@@ -2613,11 +2629,7 @@ void CHL2_Player::SuitPower_Update( void )
 		!sv_stickysprint.GetBool()
 		)
 	{
-#ifdef VKZ_ADVANCED_SPRINT
 		if (SuitPower_IsDeviceActive(bits_SUIT_DEVICE_SPRINT))
-#else
-		if (SuitPower_IsDeviceActive(bits_SUIT_DEVICE_SPRINT))
-#endif
 		{
 			// If player's not moving, don't drain sprint juice.
 			if (!isMovingHorizontally())
@@ -2772,8 +2784,8 @@ bool CHL2_Player::SuitPower_AddDevice( const CSuitPowerDevice &device )
 #endif
         return false;
     }
-#elif defined(VKZ_ADVANCED_SPRINT)
-    #error "VKZ_ADVANCED_SPRINT requires VKZ_INVALID_SUIT_POWER_DEVICE"
+#elif defined(VKZ_ADVANCED_SPRINT) || defined(VKZ_ADVANCED_BREATHER)
+#error "VKZ_INVALID_SUIT_POWER_DEVICE required"
 #endif
 
     // Make sure this device is NOT active!!
@@ -2784,16 +2796,6 @@ bool CHL2_Player::SuitPower_AddDevice( const CSuitPowerDevice &device )
         return false;
 
     SuitPower_ActivateDevice(device);
-#ifdef VKZ_ADVANCED_SPRINT
-    if (device.GetDeviceID() & bits_SUIT_DEVICE_SPRINT) {
-        // Set sprint device
-        try {
-            m_SprintDevice.CopyFrom(SuitPowerDevice::deviceCast<CSprintDevice>(device));
-        } catch (const std::bad_cast &) {
-            Warning("CHL2_Player::SuitPower_AddDevice: Failed to set sprint device\n");
-        }
-    }
-#endif
     return true;
 }
 
@@ -2814,8 +2816,8 @@ bool CHL2_Player::SuitPower_RemoveDevice( const CSuitPowerDevice &device )
 #endif
         return false;
     }
-#elif defined(VKZ_ADVANCED_SPRINT)
-    #error "VKZ_ADVANCED_SPRINT requires VKZ_INVALID_SUIT_POWER_DEVICE"
+#elif defined(VKZ_ADVANCED_SPRINT) || defined(VKZ_ADVANCED_BREATHER)
+#error "VKZ_INVALID_SUIT_POWER_DEVICE required"
 #endif
 
     // Make sure this device is active!!
@@ -3047,13 +3049,20 @@ void CHL2_Player::CheckFlashlight( void )
 //-----------------------------------------------------------------------------
 void CHL2_Player::SetPlayerUnderwater( bool state )
 {
+    const auto &breatherDevice =
+#ifdef VKZ_ADVANCED_BREATHER
+		m_BreatherDevice;
+#else
+		SuitDeviceBreather;
+#endif
+
     if ( state )
     {
-        SuitPower_AddDevice( SuitDeviceBreather );
+        SuitPower_AddDevice( breatherDevice );
     }
     else
     {
-        SuitPower_RemoveDevice( SuitDeviceBreather );
+        SuitPower_RemoveDevice( breatherDevice );
     }
 
     BaseClass::SetPlayerUnderwater( state );
@@ -5110,6 +5119,9 @@ BEGIN_DATADESC( CLogicPlayerProxy )
     DEFINE_INPUTFUNC(FIELD_FLOAT, "SetSprintDrainRate", InputSetSprintDrainRate),
     DEFINE_INPUTFUNC(FIELD_FLOAT, "SetSprintSpeed", InputSetSprintSpeed),
 #endif
+#ifdef VKZ_ADVANCED_BREATHER
+    DEFINE_INPUTFUNC(FIELD_FLOAT, "SetBreatherDrainRate", InputSetBreatherDrainRate),
+#endif
     DEFINE_FIELD( m_hPlayer, FIELD_EHANDLE ),
 END_DATADESC()
 
@@ -5609,10 +5621,10 @@ void CLogicPlayerProxy::InputSetSprintDrainRate(inputdata_t& inputdata) {
         return;
 
     const auto pPlayer = dynamic_cast<CHL2_Player*>(m_hPlayer.Get());
-    pPlayer->useSprintDevice(CSprintDevice(
-        inputdata.value.Float(),
-        pPlayer->getSprintDevice()->getSprintSpeed()
-    ));
+    const auto drainRate = inputdata.value.Float();
+	pPlayer->modifySprintDevice([drainRate](const CSprintDevice &device) -> CSprintDevice {
+		return CSprintDevice(drainRate, device.getSprintSpeed());
+	});
 }
 
 void CLogicPlayerProxy::InputSetSprintSpeed(inputdata_t& inputdata) {
@@ -5620,9 +5632,21 @@ void CLogicPlayerProxy::InputSetSprintSpeed(inputdata_t& inputdata) {
         return;
 
     const auto pPlayer = dynamic_cast<CHL2_Player*>(m_hPlayer.Get());
-    pPlayer->useSprintDevice(CSprintDevice(
-        pPlayer->getSprintDevice()->getRawDrainRate(),
-        inputdata.value.Float()
-    ));
+    const auto sprintSpeed = inputdata.value.Float();
+	pPlayer->modifySprintDevice([sprintSpeed](const CSprintDevice &device) -> CSprintDevice {
+		return CSprintDevice(device.getRawDrainRate(), sprintSpeed);
+	});
+}
+#endif
+
+#ifdef VKZ_ADVANCED_BREATHER
+void CLogicPlayerProxy::InputSetBreatherDrainRate(inputdata_t & inputdata)
+{
+    if (!m_hPlayer)
+        return;
+
+    const auto pPlayer = dynamic_cast<CHL2_Player*>(m_hPlayer.Get());
+    const auto drainRate = inputdata.value.Float();
+    pPlayer->useBreatherDevice(CBreatherDevice(drainRate));
 }
 #endif

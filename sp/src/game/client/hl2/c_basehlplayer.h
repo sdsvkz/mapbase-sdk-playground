@@ -15,6 +15,7 @@
 #include "c_baseplayer.h"
 #include "c_hl2_playerlocaldata.h"
 #include "suit_power_device/sprint_device.h"
+#include "suit_power_device/breather_device.h"
 
 #if !defined( HL2MP ) && defined ( MAPBASE )
 #include "mapbase/mapbase_playeranimstate.h"
@@ -82,6 +83,9 @@ public:
 	bool				m_fIsSprinting;
 #ifdef VKZ_ADVANCED_SPRINT
 	C_SprintDevice		m_SprintDevice;
+#endif
+#ifdef VKZ_ADVANCED_BREATHER
+	C_BreatherDevice	m_BreatherDevice;
 #endif
 
 private:

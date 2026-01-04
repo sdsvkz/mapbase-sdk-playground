@@ -7,11 +7,8 @@
 
 #ifdef VKZ_ADVANCED_SPRINT
 using SuitPowerDevice::SprintDevice;
-#endif
 
 #ifdef CLIENT_DLL
-
-#ifdef VKZ_ADVANCED_SPRINT
 
 #ifndef VKZ_NETWORKABLE_SUIT_POWER_DEVICE
 #error "VKZ_ADVANCED_SPRINT requires VKZ_NETWORKABLE_SUIT_POWER_DEVICE"
@@ -22,11 +19,7 @@ BEGIN_RECV_TABLE_NOBASE(SprintDevice, DT_SprintDevice)
 END_RECV_TABLE()
 #endif
 
-#endif
-
 #else
-
-#ifdef VKZ_ADVANCED_SPRINT
 
 #ifndef VKZ_NETWORKABLE_SUIT_POWER_DEVICE
 #error "VKZ_ADVANCED_SPRINT requires VKZ_NETWORKABLE_SUIT_POWER_DEVICE"
@@ -47,8 +40,5 @@ END_DATADESC()
 
 #endif
 
-#endif
-
-#ifdef VKZ_ADVANCED_SPRINT
 const SprintDevice SprintDevice::Default(DEFAULT_SPRINT_DRAIN_RATE, DEFAULT_SPRINT_SPEED);
 #endif

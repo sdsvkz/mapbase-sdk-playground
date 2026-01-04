@@ -99,24 +99,28 @@ void CHudSuitPower::OnThink( void )
 		g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("SuitAuxPowerNotMax");
 	}
 
-	bool flashlightActive = pPlayer->IsFlashlightActive();
+	int activeDevices = pPlayer->IsFlashlightActive();
 
-#ifdef MAPBASE
-	bool sprintActive = pPlayer->IsSprintActive();
-#else
-	bool sprintActive = pPlayer->IsSprinting();
-#endif
-
-	bool breatherActive = pPlayer->IsBreatherActive();
-#ifndef VKZ_ADVANCED_SPRINT
-	int activeDevices = (int)flashlightActive + (int)sprintActive + (int)breatherActive;
-#else
-	int activeDevices = (int)flashlightActive + (int)breatherActive;
+#ifdef VKZ_ADVANCED_SPRINT
 	// Not gonna draw sprint state if it doesn't drain power
-	if (pPlayer->m_SprintDevice.doesDrainPower()) {
-		activeDevices += (int)sprintActive;
-	}
+	if (pPlayer->m_SprintDevice.doesDrainPower())
 #endif
+	{
+		activeDevices +=
+#ifdef MAPBASE
+			pPlayer->IsSprintActive();
+#else
+			pPlayer->IsSprinting();
+#endif
+	}
+
+#ifdef VKZ_ADVANCED_BREATHER
+	// Not gonna draw oxygen state if it doesn't drain power
+	if (pPlayer->m_BreatherDevice.doesDrainPower())
+#endif
+	{
+		activeDevices += pPlayer->IsBreatherActive();
+	}
 
 #ifdef MAPBASE
 	activeDevices += (int)pPlayer->IsCustomDevice0Active() + (int)pPlayer->IsCustomDevice1Active() + (int)pPlayer->IsCustomDevice2Active();
@@ -230,7 +234,13 @@ void CHudSuitPower::Paint()
 		// draw the additional text
 		int ypos = text2_ypos;
 
-		if (pPlayer->IsBreatherActive())
+		if (
+#ifdef VKZ_ADVANCED_BREATHER
+			// No need to paint indicator if it doesn't drain power
+			pPlayer->m_BreatherDevice.doesDrainPower() &&
+#endif
+			pPlayer->IsBreatherActive()
+			)
 		{
 			tempString = g_pVGuiLocalize->Find("#Valve_Hud_OXYGEN");
 
@@ -265,31 +275,30 @@ void CHudSuitPower::Paint()
 			ypos += text2_gap;
 		}
 
+		if (
 #ifdef VKZ_ADVANCED_SPRINT
-		// No need to paint indicator if it doesn't drain power
-		if (pPlayer->m_SprintDevice.doesDrainPower())
+			// No need to paint indicator if it doesn't drain power
+			pPlayer->m_SprintDevice.doesDrainPower() &&
 #endif
-		{
 #ifdef MAPBASE
-			if (pPlayer->IsSprintActive())
+			pPlayer->IsSprintActive()
 #else
-			if (pPlayer->IsSprinting())
+			pPlayer->IsSprinting()
 #endif
+			)
+		{
+			tempString = g_pVGuiLocalize->Find("#Valve_Hud_SPRINT");
+
+			surface()->DrawSetTextPos(text2_xpos, ypos);
+
+			if (tempString)
 			{
-				tempString = g_pVGuiLocalize->Find("#Valve_Hud_SPRINT");
-
-				surface()->DrawSetTextPos(text2_xpos, ypos);
-
-				if (tempString)
-				{
-					surface()->DrawPrintText(tempString, wcslen(tempString));
-				}
-				else
-				{
-					surface()->DrawPrintText(L"SPRINT", wcslen(L"SPRINT"));
-				}
-				ypos += text2_gap;
+				surface()->DrawPrintText(tempString, wcslen(tempString));
+			} else
+			{
+				surface()->DrawPrintText(L"SPRINT", wcslen(L"SPRINT"));
 			}
+			ypos += text2_gap;
 		}
 
 #ifdef MAPBASE

@@ -14,6 +14,7 @@
 #include "hl2_playerlocaldata.h"
 #include "suit_power_device/suit_power_device.h"
 #include "suit_power_device/sprint_device.h"
+#include "suit_power_device/breather_device.h"
 #include "simtimer.h"
 #include "soundenvelope.h"
 
@@ -23,8 +24,6 @@
 #elif defined ( MAPBASE )
 #include "mapbase/mapbase_playeranimstate.h"
 #endif
-
-#include <functional>
 
 
 class CAI_Squad;
@@ -173,16 +172,20 @@ public:
 	bool SuitPower_AddDevice( const CSuitPowerDevice &device );
 	bool SuitPower_RemoveDevice( const CSuitPowerDevice &device );
 	bool SuitPower_IsDraining() const {
+		// Bitmask representing all devices that won't drain power
+		int bitsNotDrainDevices = 0;
+		auto checkAndSet = [&bitsNotDrainDevices](const CSuitPowerDevice &device) {
+			if (!device.doesDrainPower()) {
+				bitsNotDrainDevices |= device.GetDeviceID();
+			}
+		};
 #ifdef VKZ_ADVANCED_SPRINT
-		// Ignore the case that only sprint is active if it doesn't drain power
-		if (!m_SprintDevice.doesDrainPower()) {
-			return SuitPower_HasActiveDevice() && !SuitPower_IsOnlyActiveDevice(bits_SUIT_DEVICE_SPRINT);
-		} else
+		checkAndSet(m_SprintDevice);
 #endif
-		{
-			// Assuming all device drain power
-			return SuitPower_HasActiveDevice();
-		}
+#ifdef VKZ_ADVANCED_BREATHER
+		checkAndSet(m_BreatherDevice);
+#endif
+		return (m_HL2Local.m_bitsActiveDevices & ~bitsNotDrainDevices) != 0;
 	}
 	bool SuitPower_ShouldRecharge( void );
 	float SuitPower_GetCurrentPercentage( void ) const { return m_HL2Local.m_flSuitPower; }
@@ -196,16 +199,42 @@ protected:
 		m_flSuitPowerLoad -= device.GetDeviceDrainRate();
 	}
 public:
-
+	// 1. Sprint but don't move (No sprint indicator on HUD)
+	// 2. When load:
+	/*
+cfg/motd_text.txt' not found; not loaded
+Game started
+GetUserSetting: cvar 'cl_updaterate' unknown.
+GetUserSetting: cvar 'cl_interpolate' unknown.
+GetUserSetting: cvar 'cl_predict' unknown.
+GetUserSetting: cvar 'fov_desired' unknown.
+GetUserSetting: cvar 'hap_HasDevice' unknown.
+	*/
+	// 3. 跳下水显示还在奔跑，并且移动还有脚步声，水下移动更快，但同时消耗氧气和体力
+	
 	// Suit Power Device
-
 #ifdef VKZ_ADVANCED_SPRINT
-	void useSprintDevice(const CSprintDevice& device);
-	const CSprintDevice* getSprintDevice() const {
+	void useSprintDevice(const CSprintDevice &device);
+	const CSprintDevice *getSprintDevice() const {
 		return &m_SprintDevice;
 	}
-	void modifySprintDevice(std::function<CSprintDevice(const CSprintDevice*)> block) {
-		useSprintDevice(block(getSprintDevice()));
+	template<typename Fn> requires
+		std::invocable<Fn, const CSprintDevice &> &&
+		std::convertible_to<std::decay_t<std::invoke_result_t<Fn, const CSprintDevice &>>, CSprintDevice>
+	void modifySprintDevice(Fn block) {
+		useSprintDevice(block(*getSprintDevice()));
+	}
+#endif
+#ifdef VKZ_ADVANCED_BREATHER
+	void useBreatherDevice(const CBreatherDevice &device);
+	const CBreatherDevice *getBreatherDevice() const {
+		return &m_BreatherDevice;
+	}
+	template<typename Fn> requires
+		std::invocable<Fn, const CBreatherDevice &> &&
+		std::convertible_to<std::invoke_result_t<Fn, const CBreatherDevice &>, CBreatherDevice>
+	void modifyBreatherDevice(Fn block) {
+		useBreatherDevice(block(*getBreatherDevice()));
 	}
 #endif
 
@@ -452,12 +481,17 @@ private:
 	bool					m_bIsRunning;		// A proxy for holding down the sprint key (For always run)
 #endif
 
+#ifdef VKZ_NETWORKABLE_SUIT_POWER_DEVICE
 #ifdef VKZ_ADVANCED_SPRINT
-
-#ifndef VKZ_NETWORKABLE_SUIT_POWER_DEVICE
-	#error "VKZ_ADVANCED_SPRINT requires VKZ_NETWORKABLE_SUIT_POWER_DEVICE"
+	// The sprint device player using
+	CNetworkVarEmbedded(CSprintDevice, m_SprintDevice);
 #endif
-	CNetworkVarEmbedded(CSprintDevice, m_SprintDevice);			// The sprint device player should use
+#ifdef VKZ_ADVANCED_BREATHER
+	// The breather device player using
+	CNetworkVarEmbedded(CBreatherDevice, m_BreatherDevice);
+#endif
+#elif defined(VKZ_ADVANCED_SPRINT) || defined(VKZ_ADVANCED_BREATHER)
+#error "VKZ_NETWORKABLE_SUIT_POWER_DEVICE required"
 #endif
 
 	CNetworkVar( bool, m_fIsSprinting );

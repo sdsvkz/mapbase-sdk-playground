@@ -28,11 +28,12 @@ $Conditional NEW_RESPONSE_SYSTEM	"1" // Toggles the new Response System library 
 // VKZ snippets conditionals
 
 // Development
-$Conditional VKZ_DEV "0" // Additional debugging codes
+$Conditional VKZ_DEV "1" // Additional debugging codes
 $conditional VKZ_NEVER_DEFINE "0" // Deprecated snippets or snippets only used for explanation
 
 // Functionalities
 $Conditional VKZ_ADVANCED_SPRINT "1" // Advanced Sprint
+$Conditional VKZ_ADVANCED_BREATHER "1" // Advanced Breather
 $Conditional VKZ_ALWAYS_RUN "1" // Always Run
 $Conditional VKZ_FIX_QUANTUM_CROUCH "1" // Fix Quantum Crouch
 
@@ -44,6 +45,7 @@ $Conditional VKZ_NETWORKABLE_SUIT_POWER_DEVICE "1" // Networkable Suit Power Dev
 
 // Modifiers
 $Conditional VKZ_EMBEDDED_SPRINT_DEVICE_FIELD "0" // Advanced Sprint: Prefer to use `DEFINE_EMBEDDED` for `m_SprintDevice`
+$Conditional VKZ_EMBEDDED_BREATHER_DEVICE_FIELD "1" // Advanced Breather: Prefer to use `DEFINE_EMBEDDED` for `m_BreatherDevice`
 
 //-----------------------------------------------------------------------------
 
@@ -65,15 +67,17 @@ $Configuration "Debug"
 
     // VKZ
 		$PreprocessorDefinitions		"$BASE;VKZ_DEV" [$VKZ_DEV]
-    $PreprocessorDefinitions    "$BASE;VKZ_NEVER_DEFINE" [$VKZ_NEVER_DEFINE]
+	    	$PreprocessorDefinitions    		"$BASE;VKZ_NEVER_DEFINE" [$VKZ_NEVER_DEFINE]
 		$PreprocessorDefinitions		"$BASE;VKZ_ADVANCED_SPRINT" [$VKZ_ADVANCED_SPRINT]
+		$PreprocessorDefinitions		"$BASE;VKZ_ADVANCED_BREATHER" [$VKZ_ADVANCED_BREATHER]
 		$PreprocessorDefinitions		"$BASE;VKZ_ALWAYS_RUN" [$VKZ_ALWAYS_RUN]
 		$PreprocessorDefinitions		"$BASE;VKZ_FIX_QUANTUM_CROUCH" [$VKZ_FIX_QUANTUM_CROUCH]
-    $PreprocessorDefinitions    "$BASE;VKZ_INVALID_SUIT_POWER_DEVICE" [$VKZ_INVALID_SUIT_POWER_DEVICE]
-    $PreprocessorDefinitions    "$BASE;VKZ_RESTORABLE_SUIT_POWER_DEVICE" [$VKZ_RESTORABLE_SUIT_POWER_DEVICE]
-    $PreprocessorDefinitions    "$BASE;VKZ_DATADESC_SUIT_POWER_DEVICE" [$VKZ_DATADESC_SUIT_POWER_DEVICE]
-    $PreprocessorDefinitions    "$BASE;VKZ_NETWORKABLE_SUIT_POWER_DEVICE" [$VKZ_NETWORKABLE_SUIT_POWER_DEVICE]
-    $PreprocessorDefinitions    "$BASE;VKZ_EMBEDDED_SPRINT_DEVICE_FIELD" [$VKZ_EMBEDDED_SPRINT_DEVICE_FIELD]
+    		$PreprocessorDefinitions    		"$BASE;VKZ_INVALID_SUIT_POWER_DEVICE" [$VKZ_INVALID_SUIT_POWER_DEVICE]
+    		$PreprocessorDefinitions    		"$BASE;VKZ_RESTORABLE_SUIT_POWER_DEVICE" [$VKZ_RESTORABLE_SUIT_POWER_DEVICE]
+    		$PreprocessorDefinitions    		"$BASE;VKZ_DATADESC_SUIT_POWER_DEVICE" [$VKZ_DATADESC_SUIT_POWER_DEVICE]
+    		$PreprocessorDefinitions    		"$BASE;VKZ_NETWORKABLE_SUIT_POWER_DEVICE" [$VKZ_NETWORKABLE_SUIT_POWER_DEVICE]
+    		$PreprocessorDefinitions    		"$BASE;VKZ_EMBEDDED_SPRINT_DEVICE_FIELD" [$VKZ_EMBEDDED_SPRINT_DEVICE_FIELD]
+        $PreprocessorDefinitions        "$BASE;VKZ_EMBEDDED_BREATHER_DEVICE_FIELD" [$VKZ_EMBEDDED_BREATHER_DEVICE_FIELD]
 	}
 }
 
@@ -95,12 +99,14 @@ $Configuration "Release"
 
 		// VKZ
 		$PreprocessorDefinitions		"$BASE;VKZ_ADVANCED_SPRINT" [$VKZ_ADVANCED_SPRINT]
+		$PreprocessorDefinitions		"$BASE;VKZ_ADVANCED_BREATHER" [$VKZ_ADVANCED_BREATHER]
 		$PreprocessorDefinitions		"$BASE;VKZ_ALWAYS_RUN" [$VKZ_ALWAYS_RUN]
 		$PreprocessorDefinitions		"$BASE;VKZ_FIX_QUANTUM_CROUCH" [$VKZ_FIX_QUANTUM_CROUCH]
-    $PreprocessorDefinitions    "$BASE;VKZ_INVALID_SUIT_POWER_DEVICE" [$VKZ_INVALID_SUIT_POWER_DEVICE]
-    $PreprocessorDefinitions    "$BASE;VKZ_RESTORABLE_SUIT_POWER_DEVICE" [$VKZ_RESTORABLE_SUIT_POWER_DEVICE]
-    $PreprocessorDefinitions    "$BASE;VKZ_DATADESC_SUIT_POWER_DEVICE" [$VKZ_DATADESC_SUIT_POWER_DEVICE]
-    $PreprocessorDefinitions    "$BASE;VKZ_NETWORKABLE_SUIT_POWER_DEVICE" [$VKZ_NETWORKABLE_SUIT_POWER_DEVICE]
-    $PreprocessorDefinitions    "$BASE;VKZ_EMBEDDED_SPRINT_DEVICE_FIELD" [$VKZ_EMBEDDED_SPRINT_DEVICE_FIELD]
+    		$PreprocessorDefinitions    		"$BASE;VKZ_INVALID_SUIT_POWER_DEVICE" [$VKZ_INVALID_SUIT_POWER_DEVICE]
+    		$PreprocessorDefinitions    		"$BASE;VKZ_RESTORABLE_SUIT_POWER_DEVICE" [$VKZ_RESTORABLE_SUIT_POWER_DEVICE]
+    		$PreprocessorDefinitions    		"$BASE;VKZ_DATADESC_SUIT_POWER_DEVICE" [$VKZ_DATADESC_SUIT_POWER_DEVICE]
+    		$PreprocessorDefinitions    		"$BASE;VKZ_NETWORKABLE_SUIT_POWER_DEVICE" [$VKZ_NETWORKABLE_SUIT_POWER_DEVICE]
+    		$PreprocessorDefinitions    		"$BASE;VKZ_EMBEDDED_SPRINT_DEVICE_FIELD" [$VKZ_EMBEDDED_SPRINT_DEVICE_FIELD]
+        $PreprocessorDefinitions        "$BASE;VKZ_EMBEDDED_BREATHER_DEVICE_FIELD" [$VKZ_EMBEDDED_BREATHER_DEVICE_FIELD]
 	}
 }

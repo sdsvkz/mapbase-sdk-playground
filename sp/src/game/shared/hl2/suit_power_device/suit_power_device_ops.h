@@ -1,8 +1,6 @@
 ﻿#ifndef SUIT_POWER_DEVICE_OPS_H
 #define SUIT_POWER_DEVICE_OPS_H
-#ifdef _WIN32
 #pragma once
-#endif
 
 #if !defined(CLIENT_DLL) && defined(VKZ_RESTORABLE_SUIT_POWER_DEVICE)
 

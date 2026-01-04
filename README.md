@@ -37,6 +37,8 @@ Requirements:
 
 ✅ [Advanced Sprint](#advanced-sprint)
 
+✅ [Advanced Breather](#advanced-breather)
+
 🚧 [Always Run](#always-run)
 
 🌱 [Adjustable Crouching Speed](#adjustable-crouching-speed)
@@ -47,7 +49,7 @@ The same way [VDC article](https://developer.valvesoftware.com/wiki/General_SDK_
 
 ### Advanced Sprint
 
-Provided inputs to dynamically adjust drain rate and speed for sprinting.
+Provided inputs for better sprinting customization.
 
 #### Inputs
 
@@ -55,11 +57,11 @@ Provided inputs to dynamically adjust drain rate and speed for sprinting.
 
 - `SetSprintDrainRate(float drainRate)`
 
-> Set the drain rate of sprintng for this player, default for singleplayer is 12.5%/s.
+> Sets the drain rate of sprinting for this player. Default for singleplayer is 12.5 (%/s), 25 for multiplayer.
 
 - `SetSprintSpeed(float speed)`
 
-> Set how fast this player runs (Unit/s), default is 320 Unit/s.
+> Sets how fast this player runs, default is 320 (Unit/s).
 
 #### Removed `hl2_sprintspeed`
 
@@ -79,13 +81,43 @@ Instead, you can create a `logic_playerproxy` with `ent_create` and fire `SetSpr
 
 - [Invalid Suit Power Device](#invalid-suit-power-device)
 
-> Provide virtual function `isValid` for polymorphic validation
+> Provide virtual function `isValid` for polymorphic validation.
 
 #### Modifiers
 
 ##### `VKZ_EMBEDDED_SPRINT_DEVICE_FIELD`
 
-Prefer to use `DEFINE_EMBEDDED` over `DEFINE_CUSTOM_FIELD` for `m_SprintDevice`
+Prefer to use `DEFINE_EMBEDDED` over `DEFINE_CUSTOM_FIELD` for `m_SprintDevice`.
+
+### Advanced Breather
+
+Provide input for better breather customization.
+
+#### Inputs
+
+##### `logic_playerproxy`
+
+> Sets the drain rate of oxygen for this player. Default is 6.7 (%/s).
+
+#### Direct requirements
+
+- [Restorable Suit Power Device](#restorable-suit-power-device) or [DATADESC Suit Power Device](#datadesc-suit-power-device)
+
+> Same as `Advanced Sprint`.
+
+- [Networkable Suit Power Device](#networkable-suit-power-device)
+
+> Same as `Advanced Sprint`.
+
+- [Invalid Suit Power Device](#invalid-suit-power-device)
+
+> Same as `Advanced Sprint`.
+
+#### Modifiers
+
+##### `VKZ_EMBEDDED_BREATHER_DEVICE_FIELD`
+
+Prefer to use `DEFINE_EMBEDDED` over `DEFINE_CUSTOM_FIELD` for `m_BreatherDevice`.
 
 ### Always Run
 

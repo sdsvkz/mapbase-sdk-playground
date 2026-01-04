@@ -1,8 +1,6 @@
 ﻿#ifndef SPRINT_DEVICE_H
 #define SPRINT_DEVICE_H
-#ifdef _WIN32
 #pragma once
-#endif
 
 #include "gamerules.h"
 #include "shareddefs.h"
@@ -49,9 +47,9 @@ constexpr float DEFAULT_SPRINT_SPEED = 320;
 
 #ifdef CLIENT_DLL
 /**
- * @brief HEV Suit sprint device controls how fast the user run
+ * @brief Controls how fast and how much time the user run
  *
- * Note that you still need to set `sv_maxspeed`
+ * Note that you still need to set `sv_maxspeed` for speed higher than 320
  */
 class C_SprintDevice : public C_SuitPowerDevice
 #else
@@ -67,13 +65,17 @@ public:
 #endif
 
 #ifdef CLIENT_DLL
-
 	DECLARE_CLASS(C_SprintDevice, C_SuitPowerDevice);
+#else
+	DECLARE_CLASS(CSprintDevice, CSuitPowerDevice);
+#endif
 
 #ifndef VKZ_NETWORKABLE_SUIT_POWER_DEVICE
 #error "VKZ_ADVANCED_SPRINT requires VKZ_NETWORKABLE_SUIT_POWER_DEVICE"
 #endif
 	DECLARE_EMBEDDED_NETWORKVAR();
+
+#ifdef CLIENT_DLL
 
 	C_SprintDevice()
 		: ThisClass(Default) {}
@@ -86,16 +88,9 @@ protected:
 
 #else
 
-	DECLARE_CLASS(CSprintDevice, CSuitPowerDevice);
-
 #ifdef VKZ_DATADESC_SUIT_POWER_DEVICE
 	DECLARE_DATADESC();
 #endif
-
-#ifndef VKZ_NETWORKABLE_SUIT_POWER_DEVICE
-#error "VKZ_ADVANCED_SPRINT requires VKZ_NETWORKABLE_SUIT_POWER_DEVICE"
-#endif
-	DECLARE_EMBEDDED_NETWORKVAR();
 
 	CSprintDevice()
 		: CSprintDevice(Default) {}
@@ -118,7 +113,7 @@ public:
 
 	static const ThisClass Default;
 
-	// For a sprint device, returns `true` only if device `id == bits_SUIT_DEVICE_SPRINT`
+	// For a sprint device, returns `true` only if device id is `bits_SUIT_DEVICE_SPRINT`
 	virtual bool isValid() const { return m_bitsDeviceID & bits_SUIT_DEVICE_SPRINT; }
 
 	bool equals(const ThisClass &device) const {
@@ -138,6 +133,10 @@ public:
 		);
 	}
 
+	virtual void resetDrainRate() {
+		SetDeviceDrainRate(DEFAULT_SPRINT_DRAIN_RATE);
+	}
+
 	virtual float getSprintSpeed() const
 	{
 		validate();
@@ -148,8 +147,8 @@ public:
 		m_flSprintSpeed = speed;
 	}
 
-	virtual void resetDrainRate() {
-		setSprintSpeed(DEFAULT_SPRINT_DRAIN_RATE);
+	virtual void resetSprintSpeed() {
+		setSprintSpeed(DEFAULT_SPRINT_SPEED);
 	}
 
 #if !defined(CLIENT_DLL) && defined(VKZ_RESTORABLE_SUIT_POWER_DEVICE)
