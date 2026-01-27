@@ -9,9 +9,11 @@
 #define HL2_PLAYER_H
 #pragma once
 
-#include <valve_minmax_off.h>
+#include "tier0/valve_off.h"
+#include "tier0/valve_minmax_off.h"
 #include "vkzlib/mpl/function.hpp"
-#include <valve_minmax_on.h>
+#include "tier0/valve_minmax_on.h"
+#include "tier0/valve_on.h"
 
 #include "player.h"
 #include "hl2_playerlocaldata.h"
@@ -210,7 +212,7 @@ public:
 	}
 	template<vkz::mpl::function::Fn<CSprintDevice(const CSprintDevice &)> F>
 	void modifySprintDevice(F &&block) {
-		useSprintDevice(block(*getSprintDevice()));
+		useSprintDevice(std::forward<F>(block)(*getSprintDevice()));
 	}
 #endif
 #ifdef VKZ_ADVANCED_BREATHER
@@ -220,7 +222,7 @@ public:
 	}
 	template<vkz::mpl::function::Fn<CBreatherDevice(const CBreatherDevice &)> F>
 	void modifyBreatherDevice(F &&block) {
-		useBreatherDevice(block(*getBreatherDevice()));
+		useBreatherDevice(std::forward<F>(block)(*getBreatherDevice()));
 	}
 #endif
 
