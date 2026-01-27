@@ -74,7 +74,7 @@ public:
 	BreatherDeviceConstructor()
 		: ThisClass(Default) {}
 
-	BreatherDeviceConstructor(float drainRate)
+	explicit BreatherDeviceConstructor(float drainRate)
 		: BaseClass(bits_SUIT_DEVICE_BREATHER, drainRate) {}
 #undef BreatherDeviceConstructor
 public:

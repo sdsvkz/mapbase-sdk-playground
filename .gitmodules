@@ -1,0 +1,3 @@
+[submodule "VkzlibCpp"]
+	path = sp/src/VkzlibCpp
+	url = https://github.com/sdsvkz/VkzlibCpp.git

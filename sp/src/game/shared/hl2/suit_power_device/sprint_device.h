@@ -80,7 +80,7 @@ public:
 	C_SprintDevice()
 		: ThisClass(Default) {}
 
-	C_SprintDevice(float drainRate, float sprintSpeed = DEFAULT_SPRINT_SPEED)
+	explicit C_SprintDevice(float drainRate, float sprintSpeed = DEFAULT_SPRINT_SPEED)
 		: BaseClass(bits_SUIT_DEVICE_SPRINT, drainRate), m_flSprintSpeed(sprintSpeed) {}
 
 protected:
@@ -95,7 +95,7 @@ protected:
 	CSprintDevice()
 		: CSprintDevice(Default) {}
 
-	CSprintDevice(float drainRate, float sprintSpeed = DEFAULT_SPRINT_SPEED)
+	explicit CSprintDevice(float drainRate, float sprintSpeed = DEFAULT_SPRINT_SPEED)
 		: BaseClass(bits_SUIT_DEVICE_SPRINT, drainRate)
 	{
 		m_flSprintSpeed = sprintSpeed;

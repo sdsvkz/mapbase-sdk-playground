@@ -5623,8 +5623,8 @@ void CLogicPlayerProxy::InputSetSprintDrainRate(inputdata_t& inputdata) {
     const auto pPlayer = dynamic_cast<CHL2_Player*>(m_hPlayer.Get());
     const auto drainRate = inputdata.value.Float();
 	pPlayer->modifySprintDevice([drainRate](const CSprintDevice &device) -> CSprintDevice {
-		return CSprintDevice(drainRate, device.getSprintSpeed());
-	});
+        return CSprintDevice(drainRate, device.getSprintSpeed());
+    });
 }
 
 void CLogicPlayerProxy::InputSetSprintSpeed(inputdata_t& inputdata) {

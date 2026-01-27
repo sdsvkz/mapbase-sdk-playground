@@ -9,6 +9,9 @@
 #define HL2_PLAYER_H
 #pragma once
 
+#include <valve_minmax_off.h>
+#include "vkzlib/mpl/function.hpp"
+#include <valve_minmax_on.h>
 
 #include "player.h"
 #include "hl2_playerlocaldata.h"
@@ -199,29 +202,14 @@ protected:
 		m_flSuitPowerLoad -= device.GetDeviceDrainRate();
 	}
 public:
-	// 1. Sprint but don't move (No sprint indicator on HUD)
-	// 2. When load:
-	/*
-cfg/motd_text.txt' not found; not loaded
-Game started
-GetUserSetting: cvar 'cl_updaterate' unknown.
-GetUserSetting: cvar 'cl_interpolate' unknown.
-GetUserSetting: cvar 'cl_predict' unknown.
-GetUserSetting: cvar 'fov_desired' unknown.
-GetUserSetting: cvar 'hap_HasDevice' unknown.
-	*/
-	// 3. 跳下水显示还在奔跑，并且移动还有脚步声，水下移动更快，但同时消耗氧气和体力
-	
 	// Suit Power Device
 #ifdef VKZ_ADVANCED_SPRINT
 	void useSprintDevice(const CSprintDevice &device);
 	const CSprintDevice *getSprintDevice() const {
 		return &m_SprintDevice;
 	}
-	template<typename Fn> requires
-		std::invocable<Fn, const CSprintDevice &> &&
-		std::convertible_to<std::decay_t<std::invoke_result_t<Fn, const CSprintDevice &>>, CSprintDevice>
-	void modifySprintDevice(Fn block) {
+	template<vkz::mpl::function::Fn<CSprintDevice(const CSprintDevice &)> F>
+	void modifySprintDevice(F &&block) {
 		useSprintDevice(block(*getSprintDevice()));
 	}
 #endif
@@ -230,10 +218,8 @@ GetUserSetting: cvar 'hap_HasDevice' unknown.
 	const CBreatherDevice *getBreatherDevice() const {
 		return &m_BreatherDevice;
 	}
-	template<typename Fn> requires
-		std::invocable<Fn, const CBreatherDevice &> &&
-		std::convertible_to<std::invoke_result_t<Fn, const CBreatherDevice &>, CBreatherDevice>
-	void modifyBreatherDevice(Fn block) {
+	template<vkz::mpl::function::Fn<CBreatherDevice(const CBreatherDevice &)> F>
+	void modifyBreatherDevice(F &&block) {
 		useBreatherDevice(block(*getBreatherDevice()));
 	}
 #endif
